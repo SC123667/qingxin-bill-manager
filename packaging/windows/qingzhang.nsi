@@ -7,8 +7,16 @@ Unicode True
 !define EXE_NAME "QingZhang.exe"
 !define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\QingZhang"
 
+!ifndef APP_SOURCE_DIR
+!define APP_SOURCE_DIR "..\..\dist\${APP_DIR_NAME}"
+!endif
+
+!ifndef OUTPUT_FILE
+!define OUTPUT_FILE "..\..\release\QingZhang-v${APP_VERSION}-Setup.exe"
+!endif
+
 Name "${APP_NAME}"
-OutFile "release\QingZhang-v${APP_VERSION}-Setup.exe"
+OutFile "${OUTPUT_FILE}"
 InstallDir "$LOCALAPPDATA\${APP_DIR_NAME}"
 RequestExecutionLevel user
 SetCompressor /SOLID lzma
@@ -25,7 +33,7 @@ Section "Install"
 
   CreateDirectory "$INSTDIR"
   SetOutPath "$INSTDIR"
-  File /r "dist\QingZhang\*"
+  File /r "${APP_SOURCE_DIR}\*.*"
 
   CreateDirectory "$SMPROGRAMS\${APP_NAME}"
   CreateShortcut "$SMPROGRAMS\${APP_NAME}\${APP_NAME}.lnk" "$INSTDIR\${EXE_NAME}"
