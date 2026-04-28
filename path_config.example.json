@@ -1,0 +1,5 @@
+{
+  "data_path": "./accounts_data",
+  "backup_path": "./password_backups"
+}
+

@@ -1,0 +1,35 @@
+# macOS / editor noise
+.DS_Store
+.idea/
+.vscode/
+.claude/
+CLAUDE.md
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build outputs
+build/
+dist/
+*.spec.bak
+
+# Runtime data and secrets
+path_config.json
+accounts_data/
+password_backups/
+master_password.hash
+password_backup_*.txt
+*.encrypted
+
+# Local accidental files
+=*
