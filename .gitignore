@@ -15,12 +15,16 @@ __pycache__/
 
 # Virtual environments
 .venv/
+.venv-build/
 venv/
 env/
 
 # Build outputs
 build/
 dist/
+release/
+*.dmg
+*.exe
 *.spec.bak
 
 # Runtime data and secrets

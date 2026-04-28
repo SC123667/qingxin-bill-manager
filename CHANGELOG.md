@@ -9,6 +9,7 @@ All notable changes to this project are documented here.
 - Improved table column policies so amount, date, description, and action columns remain readable across normal and minimum window sizes.
 - Reworked the first-run path configuration dialog with a wider grid layout and stable path fields to prevent overlapping controls.
 - Updated UI screenshots for the new workspace design.
+- Added macOS DMG packaging assets and a GitHub Actions workflow for macOS and Windows installer builds.
 
 ## v5.2 - 2026-04-28
 
