@@ -25,7 +25,7 @@ Section "Install"
 
   CreateDirectory "$INSTDIR"
   SetOutPath "$INSTDIR"
-  File /r "dist\QingZhang\*.*"
+  File /r "dist\QingZhang\*"
 
   CreateDirectory "$SMPROGRAMS\${APP_NAME}"
   CreateShortcut "$SMPROGRAMS\${APP_NAME}\${APP_NAME}.lnk" "$INSTDIR\${EXE_NAME}"
