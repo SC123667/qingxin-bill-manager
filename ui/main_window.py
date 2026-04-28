@@ -26,36 +26,219 @@ class MainWindow(QMainWindow):
         
     def setup_ui(self):
         self.setWindowTitle("账单管理系统")
-        self.setGeometry(100, 100, 1280, 820)
-        self.setMinimumSize(1080, 720)
+        self.setGeometry(80, 80, 1360, 860)
+        self.setMinimumSize(1180, 760)
         
-        # 创建菜单栏和状态栏
         self.create_menu_bar()
         self.create_status_bar()
-        
-        # 创建账本管理工具栏
-        self.create_account_toolbar()
-        
-        # 创建多人模式工具栏
-        self.create_person_toolbar()
         
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         
-        main_layout = QVBoxLayout(central_widget)
-        main_layout.setContentsMargins(18, 16, 18, 18)
-        main_layout.setSpacing(12)
-        
-        tab_widget = QTabWidget()
-        tab_widget.setDocumentMode(True)
-        main_layout.addWidget(tab_widget)
-        
-        tab_widget.addTab(self.create_overview_tab(), "总览")
-        tab_widget.addTab(self.create_add_bill_tab(), "添加账单")
-        tab_widget.addTab(self.create_search_tab(), "搜索")
-        tab_widget.addTab(self.create_transfer_tab(), "转账平账")
-        tab_widget.addTab(self.create_export_tab(), "导出")
-        tab_widget.addTab(self.create_account_management_tab(), "账本管理")
+        shell_layout = QHBoxLayout(central_widget)
+        shell_layout.setContentsMargins(0, 0, 0, 0)
+        shell_layout.setSpacing(0)
+
+        sidebar = self._create_sidebar()
+        shell_layout.addWidget(sidebar)
+
+        workspace = QFrame()
+        workspace.setObjectName("workspace")
+        workspace_layout = QVBoxLayout(workspace)
+        workspace_layout.setContentsMargins(0, 0, 0, 0)
+        workspace_layout.setSpacing(0)
+
+        workspace_layout.addWidget(self._create_context_bar())
+
+        self.content_stack = QStackedWidget()
+        self.content_stack.setObjectName("contentStack")
+        self.content_stack.addWidget(self.create_overview_tab())
+        self.content_stack.addWidget(self.create_add_bill_tab())
+        self.content_stack.addWidget(self.create_search_tab())
+        self.content_stack.addWidget(self.create_transfer_tab())
+        self.content_stack.addWidget(self.create_export_tab())
+        self.content_stack.addWidget(self.create_account_management_tab())
+        workspace_layout.addWidget(self.content_stack, 1)
+
+        shell_layout.addWidget(workspace, 1)
+        self._switch_page(0)
+
+    def _create_sidebar(self):
+        sidebar = QFrame()
+        sidebar.setObjectName("sideBar")
+        sidebar.setFixedWidth(224)
+
+        layout = QVBoxLayout(sidebar)
+        layout.setContentsMargins(18, 22, 18, 18)
+        layout.setSpacing(10)
+
+        brand = QLabel("清新账本")
+        brand.setObjectName("brandLabel")
+        layout.addWidget(brand)
+
+        subtitle = QLabel("本地优先的专业记账")
+        subtitle.setObjectName("brandSubLabel")
+        layout.addWidget(subtitle)
+        layout.addSpacing(18)
+
+        self.nav_buttons = []
+        nav_items = [
+            ("总览", "预算、支出与分类统计"),
+            ("记一笔", "快速录入新的账单"),
+            ("账单流水", "搜索与管理历史记录"),
+            ("转账平账", "多人账本结算"),
+            ("导出报表", "Excel 与图表导出"),
+            ("账本设置", "账本与数据设置"),
+        ]
+        for index, (title, desc) in enumerate(nav_items):
+            button = self._create_nav_button(title, desc, index)
+            self.nav_buttons.append(button)
+            layout.addWidget(button)
+
+        layout.addStretch(1)
+
+        refresh_btn = QPushButton("刷新数据")
+        refresh_btn.setObjectName("sideUtilityButton")
+        refresh_btn.clicked.connect(self.load_data)
+        layout.addWidget(refresh_btn)
+
+        path_btn = QPushButton("数据路径")
+        path_btn.setObjectName("sideUtilityButton")
+        path_btn.clicked.connect(self.show_path_config_dialog)
+        layout.addWidget(path_btn)
+
+        return sidebar
+
+    def _create_nav_button(self, title, desc, index):
+        button = QPushButton(f"{title}\n{desc}")
+        button.setObjectName("navButton")
+        button.setCheckable(True)
+        button.setCursor(Qt.PointingHandCursor)
+        button.clicked.connect(lambda checked=False, page=index: self._switch_page(page))
+        return button
+
+    def _switch_page(self, index):
+        if hasattr(self, "content_stack"):
+            self.content_stack.setCurrentIndex(index)
+        for i, button in enumerate(getattr(self, "nav_buttons", [])):
+            button.setChecked(i == index)
+
+    def _create_context_bar(self):
+        bar = QFrame()
+        bar.setObjectName("contextBar")
+        layout = QHBoxLayout(bar)
+        layout.setContentsMargins(24, 14, 24, 14)
+        layout.setSpacing(12)
+
+        account_label = self._make_toolbar_label("当前账本")
+        layout.addWidget(account_label)
+
+        self.account_combo = QComboBox()
+        self.account_combo.addItems(self.bill_manager.accounts_list)
+        self.account_combo.setCurrentText(self.bill_manager.current_account)
+        self.account_combo.setMinimumWidth(190)
+        self.account_combo.setMaximumWidth(260)
+        self.account_combo.activated.connect(self.on_account_combo_activated)
+        layout.addWidget(self.account_combo)
+
+        new_account_btn = QPushButton("新建")
+        apply_button_style(new_account_btn, "info")
+        new_account_btn.clicked.connect(self.show_new_account_dialog)
+        layout.addWidget(new_account_btn)
+
+        rename_account_btn = QPushButton("重命名")
+        apply_button_style(rename_account_btn, "warning")
+        rename_account_btn.clicked.connect(self.rename_current_account)
+        layout.addWidget(rename_account_btn)
+
+        delete_account_btn = QPushButton("删除")
+        apply_button_style(delete_account_btn, "danger")
+        delete_account_btn.clicked.connect(self.delete_current_account)
+        layout.addWidget(delete_account_btn)
+
+        layout.addSpacing(12)
+
+        self.mode_toggle_btn = QPushButton()
+        apply_button_style(self.mode_toggle_btn, "tool")
+        self.mode_toggle_btn.clicked.connect(self.toggle_person_mode)
+        layout.addWidget(self.mode_toggle_btn)
+
+        self.person_label = self._make_toolbar_label("当前人员")
+        layout.addWidget(self.person_label)
+
+        self.person_combo = QComboBox()
+        self.person_combo.setMinimumWidth(130)
+        self.person_combo.setMaximumWidth(190)
+        self.person_combo.activated.connect(self.on_person_combo_activated)
+        layout.addWidget(self.person_combo)
+
+        self.add_person_btn = QPushButton("添加人员")
+        apply_button_style(self.add_person_btn, "success")
+        self.add_person_btn.clicked.connect(self.add_person)
+        layout.addWidget(self.add_person_btn)
+
+        self.remove_person_btn = QPushButton("删除人员")
+        apply_button_style(self.remove_person_btn, "danger")
+        self.remove_person_btn.clicked.connect(self.remove_person)
+        layout.addWidget(self.remove_person_btn)
+
+        layout.addStretch(1)
+
+        quick_add_btn = QPushButton("记一笔")
+        apply_button_style(quick_add_btn, "primary")
+        quick_add_btn.clicked.connect(lambda: self._switch_page(1))
+        layout.addWidget(quick_add_btn)
+
+        return bar
+
+    def _create_page(self, title, subtitle):
+        scroll = QScrollArea()
+        scroll.setObjectName("pageScroll")
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
+
+        page = QWidget()
+        page.setObjectName("page")
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(26, 24, 26, 26)
+        layout.setSpacing(18)
+
+        title_label = QLabel(title)
+        title_label.setObjectName("pageTitle")
+        subtitle_label = QLabel(subtitle)
+        subtitle_label.setObjectName("pageSubtitle")
+        subtitle_label.setWordWrap(True)
+        layout.addWidget(title_label)
+        layout.addWidget(subtitle_label)
+
+        scroll.setWidget(page)
+        return scroll, layout
+
+    def _make_section(self, title, subtitle=None):
+        section = QFrame()
+        section.setObjectName("sectionCard")
+        layout = QVBoxLayout(section)
+        layout.setContentsMargins(18, 16, 18, 18)
+        layout.setSpacing(12)
+        layout.setAlignment(Qt.AlignTop)
+
+        title_label = QLabel(title)
+        title_label.setObjectName("sectionTitle")
+        layout.addWidget(title_label)
+
+        if subtitle:
+            subtitle_label = QLabel(subtitle)
+            subtitle_label.setObjectName("sectionSubtitle")
+            subtitle_label.setWordWrap(True)
+            layout.addWidget(subtitle_label)
+
+        return section, layout
+
+    def _make_action_row(self):
+        row = QHBoxLayout()
+        row.setSpacing(10)
+        row.addStretch(1)
+        return row
 
     def _make_toolbar_label(self, text):
         label = QLabel(text)
@@ -258,13 +441,10 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage("就绪")
     
     def create_overview_tab(self):
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-        layout.setContentsMargins(14, 14, 14, 14)
-        layout.setSpacing(14)
+        widget, layout = self._create_page("财务总览", "集中查看预算、支出余额和分类占比，快速判断当前账本的资金状态。")
         
-        budget_group = QGroupBox("预算管理")
-        budget_layout = QHBoxLayout(budget_group)
+        budget_group, budget_layout_outer = self._make_section("预算控制", "设置全局预算后，系统会自动计算当前支出和剩余额度。")
+        budget_layout = QHBoxLayout()
         budget_layout.setSpacing(12)
         
         budget_layout.addWidget(QLabel("总预算:"))
@@ -272,6 +452,7 @@ class MainWindow(QMainWindow):
         self.budget_input.setRange(0, 999999999)
         self.budget_input.setSuffix(" 元")
         self.budget_input.setMinimumWidth(180)
+        self.budget_input.setMaximumWidth(260)
         budget_layout.addWidget(self.budget_input)
         
         set_budget_btn = QPushButton("设置预算")
@@ -280,57 +461,67 @@ class MainWindow(QMainWindow):
         budget_layout.addWidget(set_budget_btn)
         
         budget_layout.addStretch()
+        budget_layout_outer.addLayout(budget_layout)
         layout.addWidget(budget_group)
         
-        # 添加余额显示
-        balance_layout = QHBoxLayout()
-        balance_layout.setSpacing(12)
+        balance_layout = QGridLayout()
+        balance_layout.setHorizontalSpacing(14)
+        balance_layout.setVerticalSpacing(14)
         total_budget_card, self.total_budget_label = self._make_metric_card("全局预算")
         total_spent_card, self.total_spent_label = self._make_metric_card("总支出")
         balance_card, self.balance_label = self._make_metric_card("预算余额", object_name="metricPositive")
-        balance_layout.addWidget(total_budget_card)
-        balance_layout.addWidget(total_spent_card)
-        balance_layout.addWidget(balance_card)
+        balance_layout.addWidget(total_budget_card, 0, 0)
+        balance_layout.addWidget(total_spent_card, 0, 1)
+        balance_layout.addWidget(balance_card, 0, 2)
+        balance_layout.setColumnStretch(0, 1)
+        balance_layout.setColumnStretch(1, 1)
+        balance_layout.setColumnStretch(2, 1)
         layout.addLayout(balance_layout)
         
-        overview_group = QGroupBox("支出统计")
+        overview_group, overview_layout = self._make_section("分类支出统计", "双击备注列可以维护分类备注，用于导出总账或日后复盘。")
         self.overview_table = QTableWidget()
         self._configure_table(self.overview_table)
+        self.overview_table.setMinimumHeight(390)
         self.overview_table.setColumnCount(4)
         self.overview_table.setHorizontalHeaderLabels(["分类", "总金额", "百分比", "备注"])
         
         # 设置列宽比例
         header = self.overview_table.horizontalHeader()
-        header.setStretchLastSection(True)  # 最后一列自动拉伸
+        header.setStretchLastSection(False)
+        header.setSectionResizeMode(0, QHeaderView.Fixed)
+        header.setSectionResizeMode(1, QHeaderView.Fixed)
+        header.setSectionResizeMode(2, QHeaderView.Fixed)
+        header.setSectionResizeMode(3, QHeaderView.Stretch)
         header.resizeSection(0, 140)  # 分类列（增加宽度以显示长分类名）
         header.resizeSection(1, 100)  # 总金额列
         header.resizeSection(2, 80)   # 百分比列
-        # 备注列会自动占据剩余空间
         
         # 允许双击编辑备注
         self.overview_table.itemDoubleClicked.connect(self.edit_category_note)
         
-        overview_layout = QVBoxLayout(overview_group)
         overview_layout.addWidget(self.overview_table)
         
-        # 添加备注编辑提示
         note_hint = self._make_note_label("提示：双击备注列可编辑分类备注")
         overview_layout.addWidget(note_hint)
         
-        layout.addWidget(overview_group)
+        layout.addWidget(overview_group, 1)
         
         return widget
     
     def create_add_bill_tab(self):
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-        layout.setContentsMargins(14, 14, 14, 14)
-        layout.setSpacing(14)
-        
-        form_group = QGroupBox("添加新账单")
-        form_layout = QFormLayout(form_group)
+        widget, layout = self._create_page("记一笔", "高频录入区保持紧凑，右侧同步展示最近记录，适合连续记账。")
+
+        content_layout = QHBoxLayout()
+        content_layout.setSpacing(18)
+
+        form_group, form_outer_layout = self._make_section("新增账单")
+        form_group.setMinimumWidth(380)
+        form_group.setMaximumWidth(460)
+        form_widget = QWidget()
+        form_layout = QFormLayout(form_widget)
         form_layout.setSpacing(12)
         form_layout.setLabelAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        form_layout.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
         
         # 分类选择和管理
         category_layout = QHBoxLayout()
@@ -388,9 +579,11 @@ class MainWindow(QMainWindow):
         form_layout.addRow("描述:", self.description_input)
         
         add_btn = QPushButton("添加账单")
+        add_btn.setMinimumHeight(44)
         apply_button_style(add_btn, 'primary')
         add_btn.clicked.connect(self.add_bill)
         form_layout.addRow("", add_btn)
+        form_outer_layout.addWidget(form_widget)
         
         # 添加键盘支持
         self.description_input.returnPressed.connect(self.add_bill)
@@ -400,25 +593,28 @@ class MainWindow(QMainWindow):
         self.setTabOrder(self.amount_input, self.description_input)
         self.setTabOrder(self.description_input, add_btn)
         
-        layout.addWidget(form_group)
+        content_layout.addWidget(form_group, 0, Qt.AlignTop)
         
-        recent_group = QGroupBox("最近添加的账单")
+        recent_group, recent_layout = self._make_section("最近账单", "默认展示最近 20 条记录，可勾选后批量删除。")
         self.recent_table = QTableWidget()
         self._configure_table(self.recent_table)
+        self.recent_table.setMinimumHeight(520)
         self.recent_table.setColumnCount(5)
         self.recent_table.setHorizontalHeaderLabels(["选择", "分类", "金额", "描述", "日期"])
         self.recent_table.setSelectionBehavior(QAbstractItemView.SelectRows)
         
         header = self.recent_table.horizontalHeader()
-        header.setStretchLastSection(True)
-        # 设置列宽以适应内容
+        header.setStretchLastSection(False)
+        header.setSectionResizeMode(0, QHeaderView.Fixed)
+        header.setSectionResizeMode(1, QHeaderView.Fixed)
+        header.setSectionResizeMode(2, QHeaderView.Fixed)
+        header.setSectionResizeMode(3, QHeaderView.Stretch)
+        header.setSectionResizeMode(4, QHeaderView.Fixed)
         header.resizeSection(0, 60)    # 选择列
         header.resizeSection(1, 120)   # 分类列（增加宽度）
         header.resizeSection(2, 100)   # 金额列
-        header.resizeSection(3, 200)   # 描述列
         header.resizeSection(4, 150)   # 日期列
         
-        recent_layout = QVBoxLayout(recent_group)
         recent_layout.addWidget(self.recent_table)
         
         # 添加删除按钮到最近账单区域
@@ -442,48 +638,51 @@ class MainWindow(QMainWindow):
         recent_delete_layout.addStretch()
         recent_layout.addLayout(recent_delete_layout)
         
-        layout.addWidget(recent_group)
+        content_layout.addWidget(recent_group, 1)
+        layout.addLayout(content_layout, 1)
         
         return widget
     
     def create_search_tab(self):
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-        layout.setContentsMargins(14, 14, 14, 14)
-        layout.setSpacing(14)
+        widget, layout = self._create_page("账单流水", "按关键词检索历史账单，并在同一个工作区完成选择、清除和删除。")
         
-        search_group = QGroupBox("搜索账单")
-        search_layout = QHBoxLayout(search_group)
+        search_group, search_outer_layout = self._make_section("流水检索")
+        search_layout = QHBoxLayout()
+        search_layout.setSpacing(10)
         
         search_layout.addWidget(QLabel("关键词:"))
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("输入关键词搜索...")
-        search_layout.addWidget(self.search_input)
+        self.search_input.setPlaceholderText("输入分类、描述、金额或日期关键词...")
+        search_layout.addWidget(self.search_input, 1)
         
         search_btn = QPushButton("搜索")
         apply_button_style(search_btn, 'primary')
         search_btn.clicked.connect(self.search_bills)
         search_layout.addWidget(search_btn)
+        search_outer_layout.addLayout(search_layout)
         
         layout.addWidget(search_group)
         
-        results_group = QGroupBox("搜索结果")
+        results_group, results_layout = self._make_section("检索结果", "结果表格保留原有删除逻辑，勾选左侧复选框后执行批量操作。")
         self.search_table = QTableWidget()
         self._configure_table(self.search_table)
+        self.search_table.setMinimumHeight(520)
         self.search_table.setColumnCount(5)
         self.search_table.setHorizontalHeaderLabels(["选择", "分类", "金额", "描述", "日期"])
         self.search_table.setSelectionBehavior(QAbstractItemView.SelectRows)
         
         header = self.search_table.horizontalHeader()
-        header.setStretchLastSection(True)
-        # 设置列宽以适应内容
+        header.setStretchLastSection(False)
+        header.setSectionResizeMode(0, QHeaderView.Fixed)
+        header.setSectionResizeMode(1, QHeaderView.Fixed)
+        header.setSectionResizeMode(2, QHeaderView.Fixed)
+        header.setSectionResizeMode(3, QHeaderView.Stretch)
+        header.setSectionResizeMode(4, QHeaderView.Fixed)
         header.resizeSection(0, 60)    # 选择列
         header.resizeSection(1, 120)   # 分类列（增加宽度）
         header.resizeSection(2, 100)   # 金额列
-        header.resizeSection(3, 200)   # 描述列
         header.resizeSection(4, 150)   # 日期列
         
-        results_layout = QVBoxLayout(results_group)
         results_layout.addWidget(self.search_table)
         
         # 添加删除按钮
@@ -515,14 +714,13 @@ class MainWindow(QMainWindow):
     
     def create_transfer_tab(self):
         """创建转账平账标签页"""
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-        layout.setContentsMargins(14, 14, 14, 14)
-        layout.setSpacing(14)
+        widget, layout = self._create_page("转账平账", "多人账本下设置主账单人员，记录转账并查看每个人的结算状态。")
+
+        top_layout = QHBoxLayout()
+        top_layout.setSpacing(18)
         
-        # 主账单设置组
-        master_group = QGroupBox("主账单设置")
-        master_layout = QVBoxLayout(master_group)
+        master_group, master_layout = self._make_section("主账单设置")
+        master_group.setMinimumWidth(360)
         
         # 当前主账单显示
         current_master_layout = QHBoxLayout()
@@ -547,14 +745,14 @@ class MainWindow(QMainWindow):
         set_master_layout.addStretch()
         master_layout.addLayout(set_master_layout)
         
-        layout.addWidget(master_group)
+        top_layout.addWidget(master_group)
         
-        # 转账平账组
-        transfer_group = QGroupBox("转账平账")
-        transfer_layout = QVBoxLayout(transfer_group)
+        transfer_group, transfer_layout = self._make_section("转账录入")
         
         # 转账表单
         form_layout = QFormLayout()
+        form_layout.setSpacing(12)
+        form_layout.setLabelAlignment(Qt.AlignRight | Qt.AlignVCenter)
         
         self.from_person_combo = QComboBox()
         self.from_person_combo.setMinimumWidth(150)
@@ -602,56 +800,60 @@ class MainWindow(QMainWindow):
         transfer_buttons_layout.addStretch()
         transfer_layout.addLayout(transfer_buttons_layout)
         
-        layout.addWidget(transfer_group)
+        top_layout.addWidget(transfer_group, 1)
+        layout.addLayout(top_layout)
         
-        # 人员余额显示组
-        balance_group = QGroupBox("人员余额状况")
+        tables_layout = QHBoxLayout()
+        tables_layout.setSpacing(18)
+
+        balance_group, balance_layout = self._make_section("人员余额状况")
         self.balance_table = QTableWidget()
         self._configure_table(self.balance_table)
+        self.balance_table.setMinimumHeight(360)
         self.balance_table.setColumnCount(4)
         self.balance_table.setHorizontalHeaderLabels(["人员", "支出总额", "收入总额", "账单余额"])
         
         header = self.balance_table.horizontalHeader()
-        header.setStretchLastSection(True)
+        header.setStretchLastSection(False)
+        for col in range(4):
+            header.setSectionResizeMode(col, QHeaderView.Stretch)
         header.resizeSection(0, 100)
         header.resizeSection(1, 120)
         header.resizeSection(2, 120)
         header.resizeSection(3, 120)
         
-        balance_layout = QVBoxLayout(balance_group)
         balance_layout.addWidget(self.balance_table)
-        layout.addWidget(balance_group)
+        tables_layout.addWidget(balance_group, 1)
         
-        # 转账记录显示组
-        history_group = QGroupBox("转账记录")
+        history_group, history_layout = self._make_section("转账记录")
         self.transfer_history_table = QTableWidget()
         self._configure_table(self.transfer_history_table)
+        self.transfer_history_table.setMinimumHeight(360)
         self.transfer_history_table.setColumnCount(5)
         self.transfer_history_table.setHorizontalHeaderLabels(["人员", "金额", "说明", "日期", "类型"])
         
         header = self.transfer_history_table.horizontalHeader()
-        header.setStretchLastSection(True)
+        header.setStretchLastSection(False)
+        header.setSectionResizeMode(0, QHeaderView.Fixed)
+        header.setSectionResizeMode(1, QHeaderView.Fixed)
+        header.setSectionResizeMode(2, QHeaderView.Stretch)
+        header.setSectionResizeMode(3, QHeaderView.Fixed)
+        header.setSectionResizeMode(4, QHeaderView.Fixed)
         header.resizeSection(0, 100)
         header.resizeSection(1, 100)
-        header.resizeSection(2, 200)
         header.resizeSection(3, 150)
         header.resizeSection(4, 80)
         
-        history_layout = QVBoxLayout(history_group)
         history_layout.addWidget(self.transfer_history_table)
-        layout.addWidget(history_group)
+        tables_layout.addWidget(history_group, 1)
+        layout.addLayout(tables_layout, 1)
         
         return widget
     
     def create_export_tab(self):
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-        layout.setContentsMargins(14, 14, 14, 14)
-        layout.setSpacing(14)
+        widget, layout = self._create_page("导出报表", "按当前账本数据生成 Excel 明细或 PNG 图表，适合归档与分享。")
         
-        # 导出设置组
-        settings_group = QGroupBox("导出设置")
-        settings_layout = QVBoxLayout(settings_group)
+        settings_group, settings_layout = self._make_section("报表设置")
         
         # 时间导出选项
         time_layout = QHBoxLayout()
@@ -684,9 +886,7 @@ class MainWindow(QMainWindow):
         
         layout.addWidget(settings_group)
         
-        # 多人模式导出设置组
-        self.person_export_group = QGroupBox("人员导出设置")
-        person_export_layout = QVBoxLayout(self.person_export_group)
+        self.person_export_group, person_export_layout = self._make_section("人员导出设置")
         
         # 人员选择选项
         person_layout = QHBoxLayout()
@@ -729,25 +929,43 @@ class MainWindow(QMainWindow):
         # 初始化人员导出组的显示状态
         self.update_export_person_visibility()
         
-        # 导出按钮组
-        export_group = QGroupBox("导出文件")
-        export_layout = QVBoxLayout(export_group)
+        export_group, export_layout = self._make_section("生成文件")
         
-        excel_layout = QHBoxLayout()
+        export_cards = QHBoxLayout()
+        export_cards.setSpacing(14)
+
+        excel_card = QFrame()
+        excel_card.setObjectName("miniPanel")
+        excel_layout = QVBoxLayout(excel_card)
+        excel_layout.setContentsMargins(16, 14, 16, 16)
+        excel_layout.setSpacing(10)
+        excel_title = QLabel("Excel 明细/总账")
+        excel_title.setObjectName("miniPanelTitle")
+        excel_layout.addWidget(excel_title)
+        excel_layout.addWidget(self._make_note_label("适合继续统计、筛选或打印归档。"))
         excel_btn = QPushButton("导出为 Excel")
         apply_button_style(excel_btn, 'primary')
         excel_btn.clicked.connect(self.export_excel)
         excel_layout.addWidget(excel_btn)
-        excel_layout.addStretch()
-        export_layout.addLayout(excel_layout)
-        
-        png_layout = QHBoxLayout()
+        excel_layout.addStretch(1)
+        export_cards.addWidget(excel_card)
+
+        png_card = QFrame()
+        png_card.setObjectName("miniPanel")
+        png_layout = QVBoxLayout(png_card)
+        png_layout.setContentsMargins(16, 14, 16, 16)
+        png_layout.setSpacing(10)
+        png_title = QLabel("PNG 支出图表")
+        png_title.setObjectName("miniPanelTitle")
+        png_layout.addWidget(png_title)
+        png_layout.addWidget(self._make_note_label("适合快速查看分类分布或发送给他人。"))
         png_btn = QPushButton("导出为 PNG 图表")
         apply_button_style(png_btn, 'info')
         png_btn.clicked.connect(self.export_png)
         png_layout.addWidget(png_btn)
-        png_layout.addStretch()
-        export_layout.addLayout(png_layout)
+        png_layout.addStretch(1)
+        export_cards.addWidget(png_card)
+        export_layout.addLayout(export_cards)
         
         layout.addWidget(export_group)
         layout.addStretch()
@@ -756,14 +974,9 @@ class MainWindow(QMainWindow):
     
     def create_account_management_tab(self):
         """创建账本管理标签页"""
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-        layout.setContentsMargins(14, 14, 14, 14)
-        layout.setSpacing(14)
+        widget, layout = self._create_page("账本设置", "管理多个账本的创建、切换、重命名和删除，当前账本会同步显示在顶部状态栏。")
         
-        # 当前账本信息
-        current_group = QGroupBox("当前账本信息")
-        current_layout = QVBoxLayout(current_group)
+        current_group, current_layout = self._make_section("当前账本")
         
         self.current_account_label = QLabel(f"当前账本: {self.bill_manager.current_account}")
         self.current_account_label.setObjectName("accentLabel")
@@ -771,25 +984,28 @@ class MainWindow(QMainWindow):
         
         layout.addWidget(current_group)
         
-        # 账本列表
-        list_group = QGroupBox("所有账本")
-        list_layout = QVBoxLayout(list_group)
+        list_group, list_layout = self._make_section("所有账本", "双击非当前账本可直接切换。删除操作会再次确认。")
         
         self.accounts_table = QTableWidget()
         self._configure_table(self.accounts_table)
+        self.accounts_table.setMinimumHeight(430)
         self.accounts_table.setColumnCount(3)
         self.accounts_table.setHorizontalHeaderLabels(["账本名称", "状态", "操作"])
         self.accounts_table.cellDoubleClicked.connect(self.on_account_table_double_click)
         
         header = self.accounts_table.horizontalHeader()
-        header.setStretchLastSection(True)
+        header.setStretchLastSection(False)
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.Fixed)
+        header.setSectionResizeMode(2, QHeaderView.Stretch)
+        header.resizeSection(1, 120)
         
         list_layout.addWidget(self.accounts_table)
-        layout.addWidget(list_group)
+        layout.addWidget(list_group, 1)
         
-        # 账本操作按钮
-        button_group = QGroupBox("账本操作")
-        button_layout = QHBoxLayout(button_group)
+        button_group, button_group_layout = self._make_section("账本操作")
+        button_layout = QHBoxLayout()
+        button_layout.setSpacing(10)
         
         new_account_btn = QPushButton("新建账本")
         apply_button_style(new_account_btn, 'info')
@@ -807,6 +1023,7 @@ class MainWindow(QMainWindow):
         button_layout.addWidget(rename_account_btn)
         
         button_layout.addStretch()
+        button_group_layout.addLayout(button_layout)
         layout.addWidget(button_group)
         
         return widget

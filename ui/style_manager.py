@@ -6,6 +6,10 @@ COLORS = {
     "surface": "#ffffff",
     "surface_soft": "#eef6f4",
     "surface_alt": "#f8fbfa",
+    "sidebar": "#14312d",
+    "sidebar_soft": "#1d4741",
+    "sidebar_text": "#f4fbf9",
+    "sidebar_muted": "#a9c9c3",
     "hover": "#e6f2ef",
     "selected": "#d7ece8",
     "text": "#17312d",
@@ -52,6 +56,139 @@ def get_main_style():
     QLabel {{
         color: {COLORS["text"]};
         background: transparent;
+    }}
+
+    QFrame#sideBar {{
+        background-color: {COLORS["sidebar"]};
+        border: none;
+    }}
+
+    QLabel#brandLabel {{
+        color: {COLORS["sidebar_text"]};
+        font-size: 24px;
+        font-weight: 900;
+        padding: 2px 4px 0 4px;
+    }}
+
+    QLabel#brandSubLabel {{
+        color: {COLORS["sidebar_muted"]};
+        font-size: 12px;
+        font-weight: 600;
+        padding: 0 4px;
+    }}
+
+    QPushButton#navButton {{
+        background-color: transparent;
+        color: {COLORS["sidebar_text"]};
+        border: 1px solid transparent;
+        border-radius: 8px;
+        padding: 11px 12px;
+        text-align: left;
+        min-height: 54px;
+        font-size: 13px;
+        font-weight: 700;
+    }}
+
+    QPushButton#navButton:hover {{
+        background-color: {COLORS["sidebar_soft"]};
+        border-color: rgba(255, 255, 255, 0.08);
+    }}
+
+    QPushButton#navButton:checked {{
+        background-color: {COLORS["primary"]};
+        color: #ffffff;
+        border-color: {COLORS["primary_hover"]};
+    }}
+
+    QPushButton#sideUtilityButton {{
+        background-color: rgba(255, 255, 255, 0.07);
+        color: {COLORS["sidebar_text"]};
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        min-height: 34px;
+        min-width: 0;
+        padding: 8px 10px;
+        font-size: 13px;
+        font-weight: 700;
+    }}
+
+    QPushButton#sideUtilityButton:hover {{
+        background-color: {COLORS["sidebar_soft"]};
+    }}
+
+    QFrame#workspace {{
+        background-color: {COLORS["window"]};
+        border: none;
+    }}
+
+    QFrame#contextBar {{
+        background-color: {COLORS["surface"]};
+        border: none;
+        border-bottom: 1px solid {COLORS["border"]};
+    }}
+
+    QStackedWidget#contentStack {{
+        background-color: {COLORS["window"]};
+        border: none;
+    }}
+
+    QScrollArea#pageScroll {{
+        background-color: {COLORS["window"]};
+        border: none;
+    }}
+
+    QScrollArea#pageScroll > QWidget > QWidget {{
+        background-color: {COLORS["window"]};
+    }}
+
+    QWidget#page {{
+        background-color: {COLORS["window"]};
+    }}
+
+    QLabel#pageTitle {{
+        color: {COLORS["text"]};
+        font-size: 28px;
+        font-weight: 900;
+        padding: 0;
+    }}
+
+    QLabel#pageSubtitle {{
+        color: {COLORS["muted"]};
+        font-size: 13px;
+        font-weight: 500;
+        padding: 0 0 2px 1px;
+    }}
+
+    QFrame#sectionCard {{
+        background-color: {COLORS["surface"]};
+        border: 1px solid {COLORS["border"]};
+        border-radius: 8px;
+    }}
+
+    QLabel#sectionTitle {{
+        color: {COLORS["text"]};
+        font-size: 16px;
+        font-weight: 850;
+        padding: 0;
+    }}
+
+    QLabel#sectionSubtitle {{
+        color: {COLORS["muted"]};
+        font-size: 12px;
+        font-weight: 500;
+        padding: 0;
+    }}
+
+    QFrame#miniPanel {{
+        background-color: {COLORS["surface_alt"]};
+        border: 1px solid {COLORS["border"]};
+        border-radius: 8px;
+    }}
+
+    QLabel#miniPanelTitle {{
+        color: {COLORS["text"]};
+        font-size: 15px;
+        font-weight: 800;
     }}
 
     QLabel#toolbarLabel {{
@@ -112,7 +249,7 @@ def get_main_style():
         font-size: 14px;
         font-weight: 600;
         min-height: 34px;
-        min-width: 88px;
+        min-width: 84px;
     }}
 
     QPushButton:hover {{
@@ -310,10 +447,11 @@ def get_main_style():
         selection-background-color: {COLORS["primary_soft"]};
         selection-color: {COLORS["text"]};
         outline: none;
+        font-size: 13px;
     }}
 
     QTableWidget::item {{
-        padding: 8px;
+        padding: 7px 8px;
         border: none;
     }}
 
@@ -586,11 +724,23 @@ def get_login_dialog_style():
 def get_path_config_style():
     """获取路径配置对话框样式。"""
     return get_main_style() + f"""
+    QFrame#dialogHeader {{
+        background-color: {COLORS["surface"]};
+        border: 1px solid {COLORS["border"]};
+        border-radius: 8px;
+    }}
+
     QLabel#titleLabel {{
         color: {COLORS["primary"]};
-        font-size: 22px;
+        font-size: 24px;
         font-weight: 800;
-        padding: 8px;
+        padding: 4px;
+    }}
+
+    QLabel#dialogLead {{
+        color: {COLORS["muted"]};
+        font-size: 14px;
+        font-weight: 500;
     }}
     """
 

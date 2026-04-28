@@ -21,71 +21,78 @@ class PathConfigDialog(QDialog):
         
     def setup_ui(self):
         self.setWindowTitle("数据存储路径设置")
-        self.setMinimumSize(720, 560)
-        self.resize(760, 580)
+        self.setMinimumSize(820, 640)
+        self.resize(860, 660)
         self.setModal(True)
         
         layout = QVBoxLayout(self)
-        layout.setSpacing(14)
-        layout.setContentsMargins(30, 26, 30, 26)
-        
-        # 标题
+        layout.setSpacing(16)
+        layout.setContentsMargins(34, 30, 34, 30)
+
+        header = QFrame()
+        header.setObjectName("dialogHeader")
+        header_layout = QVBoxLayout(header)
+        header_layout.setContentsMargins(20, 18, 20, 18)
+        header_layout.setSpacing(8)
+
         title = QLabel("数据存储路径配置")
         title.setAlignment(Qt.AlignCenter)
         title.setObjectName("titleLabel")
-        layout.addWidget(title)
+        header_layout.addWidget(title)
         
-        # 说明文字
         if self.is_first_time:
-            info_text = """欢迎首次使用账单管理系统！
-            
-为了更好地管理您的数据，请选择数据存储位置："""
+            info_text = "欢迎首次使用账单管理系统。请选择账单数据与密码备份的保存位置。"
         else:
-            info_text = """请选择数据存储位置："""
+            info_text = "请选择账单数据与密码备份的保存位置。"
         
         info_label = QLabel(info_text)
         info_label.setAlignment(Qt.AlignCenter)
         info_label.setWordWrap(True)
-        layout.addWidget(info_label)
+        info_label.setObjectName("dialogLead")
+        header_layout.addWidget(info_label)
+        layout.addWidget(header)
         
         # 路径配置组
         path_group = QGroupBox("存储路径设置")
-        path_group.setMinimumHeight(220)
-        path_layout = QVBoxLayout()
-        path_layout.setSpacing(10)
-        path_layout.setContentsMargins(18, 24, 18, 18)
+        path_group.setMinimumHeight(260)
+        path_layout = QGridLayout()
+        path_layout.setHorizontalSpacing(12)
+        path_layout.setVerticalSpacing(12)
+        path_layout.setContentsMargins(18, 26, 18, 18)
         
         # 数据路径设置
-        data_label = QLabel("账单数据存储路径:")
-        path_layout.addWidget(data_label)
+        data_label = QLabel("账单数据存储路径")
+        data_label.setMinimumWidth(140)
+        path_layout.addWidget(data_label, 0, 0)
         
-        data_input_layout = QHBoxLayout()
         self.data_path_input = QLineEdit()
         self.data_path_input.setPlaceholderText("选择账单数据存储文件夹...")
         self.data_path_input.setReadOnly(True)
-        data_input_layout.addWidget(self.data_path_input)
+        self.data_path_input.setMinimumHeight(42)
+        path_layout.addWidget(self.data_path_input, 0, 1)
         
         data_browse_btn = QPushButton("浏览...")
-        data_browse_btn.setMinimumWidth(104)
+        data_browse_btn.setMinimumSize(104, 42)
         data_browse_btn.clicked.connect(self.browse_data_path)
-        data_input_layout.addWidget(data_browse_btn)
-        path_layout.addLayout(data_input_layout)
+        path_layout.addWidget(data_browse_btn, 0, 2)
         
         # 备份路径设置
-        backup_label = QLabel("密码备份存储路径:")
-        path_layout.addWidget(backup_label)
+        backup_label = QLabel("密码备份存储路径")
+        backup_label.setMinimumWidth(140)
+        path_layout.addWidget(backup_label, 1, 0)
         
-        backup_input_layout = QHBoxLayout()
         self.backup_path_input = QLineEdit()
         self.backup_path_input.setPlaceholderText("选择密码备份存储文件夹...")
         self.backup_path_input.setReadOnly(True)
-        backup_input_layout.addWidget(self.backup_path_input)
+        self.backup_path_input.setMinimumHeight(42)
+        path_layout.addWidget(self.backup_path_input, 1, 1)
         
         backup_browse_btn = QPushButton("浏览...")
-        backup_browse_btn.setMinimumWidth(104)
+        backup_browse_btn.setMinimumSize(104, 42)
         backup_browse_btn.clicked.connect(self.browse_backup_path)
-        backup_input_layout.addWidget(backup_browse_btn)
-        path_layout.addLayout(backup_input_layout)
+        path_layout.addWidget(backup_browse_btn, 1, 2)
+
+        path_layout.setColumnStretch(1, 1)
         
         path_group.setLayout(path_layout)
         layout.addWidget(path_group)
@@ -95,14 +102,17 @@ class PathConfigDialog(QDialog):
         quick_layout.setSpacing(10)
         
         desktop_btn = QPushButton("使用桌面")
+        desktop_btn.setMinimumHeight(42)
         desktop_btn.clicked.connect(self.set_desktop_path)
         quick_layout.addWidget(desktop_btn)
         
         documents_btn = QPushButton("使用文档")
+        documents_btn.setMinimumHeight(42)
         documents_btn.clicked.connect(self.set_documents_path)
         quick_layout.addWidget(documents_btn)
         
         default_btn = QPushButton("使用默认")
+        default_btn.setMinimumHeight(42)
         default_btn.clicked.connect(self.set_default_path)
         quick_layout.addWidget(default_btn)
         
@@ -124,6 +134,7 @@ class PathConfigDialog(QDialog):
         
         ok_btn = QPushButton("确定")
         ok_btn.setObjectName("primaryButton")
+        ok_btn.setMinimumSize(112, 42)
         ok_btn.clicked.connect(self.save_config)
         button_layout.addWidget(ok_btn)
         
@@ -152,6 +163,8 @@ class PathConfigDialog(QDialog):
         
         self.data_path_input.setText(data_path)
         self.backup_path_input.setText(backup_path)
+        self.data_path_input.setCursorPosition(0)
+        self.backup_path_input.setCursorPosition(0)
         self.selected_data_path = data_path
         self.selected_backup_path = backup_path
     
@@ -163,6 +176,8 @@ class PathConfigDialog(QDialog):
         
         self.data_path_input.setText(data_path)
         self.backup_path_input.setText(backup_path)
+        self.data_path_input.setCursorPosition(0)
+        self.backup_path_input.setCursorPosition(0)
         self.selected_data_path = data_path
         self.selected_backup_path = backup_path
     
@@ -176,6 +191,8 @@ class PathConfigDialog(QDialog):
         
         self.data_path_input.setText(data_path)
         self.backup_path_input.setText(backup_path)
+        self.data_path_input.setCursorPosition(0)
+        self.backup_path_input.setCursorPosition(0)
         self.selected_data_path = data_path
         self.selected_backup_path = backup_path
     

@@ -90,7 +90,7 @@ def check_path_config():
 
 def main():
     app = QApplication(sys.argv)
-    app.setApplicationName("账单管理系统 v5.2")
+    app.setApplicationName("账单管理系统 v5.3")
     
     # 启用高DPI支持
     app.setAttribute(Qt.AA_EnableHighDpiScaling, True)
