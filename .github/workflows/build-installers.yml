@@ -32,7 +32,7 @@ jobs:
             --noconfirm `
             --clean `
             --windowed `
-            --name "清账" `
+            --name "QingZhang" `
             --icon "packaging/windows/qingzhang.ico" `
             --add-data "ui;ui" `
             --add-data "core;core" `

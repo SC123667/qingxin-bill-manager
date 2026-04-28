@@ -4,7 +4,7 @@ Unicode True
 !define APP_VERSION "5.3"
 !define APP_PUBLISHER "SC123667"
 !define APP_DIR_NAME "QingZhang"
-!define EXE_NAME "清账.exe"
+!define EXE_NAME "QingZhang.exe"
 !define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\QingZhang"
 
 Name "${APP_NAME}"
@@ -25,7 +25,7 @@ Section "Install"
 
   CreateDirectory "$INSTDIR"
   SetOutPath "$INSTDIR"
-  File /r "dist\清账\*.*"
+  File /r "dist\QingZhang\*.*"
 
   CreateDirectory "$SMPROGRAMS\${APP_NAME}"
   CreateShortcut "$SMPROGRAMS\${APP_NAME}\${APP_NAME}.lnk" "$INSTDIR\${EXE_NAME}"
