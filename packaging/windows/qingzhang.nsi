@@ -1,7 +1,7 @@
 Unicode True
 
 !define APP_NAME "清账"
-!define APP_VERSION "5.3"
+!define APP_VERSION "5.4"
 !define APP_PUBLISHER "SC123667"
 !define APP_DIR_NAME "QingZhang"
 !define EXE_NAME "QingZhang.exe"

@@ -742,6 +742,39 @@ def get_path_config_style():
         font-size: 14px;
         font-weight: 500;
     }}
+
+    QFrame#importPanel {{
+        background-color: {COLORS["surface_alt"]};
+        border: 1px solid {COLORS["border"]};
+        border-radius: 8px;
+    }}
+
+    QLabel#importTitle {{
+        color: {COLORS["text"]};
+        font-size: 15px;
+        font-weight: 850;
+    }}
+
+    QLabel#importHint {{
+        color: {COLORS["muted"]};
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 18px;
+    }}
+
+    QPushButton#importButton {{
+        background-color: {COLORS["info_soft"]};
+        color: {COLORS["info"]};
+        border-color: #bfdbfe;
+        font-size: 13px;
+        font-weight: 800;
+    }}
+
+    QPushButton#importButton:hover {{
+        background-color: {COLORS["info"]};
+        color: #ffffff;
+        border-color: {COLORS["info"]};
+    }}
     """
 
 

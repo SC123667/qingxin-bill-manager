@@ -53,14 +53,14 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force release | Out-Null
           $appSource = (Resolve-Path "dist/QingZhang").Path
-          $outputFile = Join-Path (Resolve-Path "release").Path "QingZhang-v5.3-Setup.exe"
+          $outputFile = Join-Path (Resolve-Path "release").Path "QingZhang-v5.4-Setup.exe"
           & "C:\Program Files (x86)\NSIS\makensis.exe" "/DAPP_SOURCE_DIR=$appSource" "/DOUTPUT_FILE=$outputFile" packaging/windows/qingzhang.nsi
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
-          name: QingZhang-Windows-Installer-v5.3
-          path: release/QingZhang-v5.3-Setup.exe
+          name: QingZhang-Windows-Installer-v5.4
+          path: release/QingZhang-v5.4-Setup.exe
 
   macos-dmg:
     name: macOS DMG
@@ -105,10 +105,10 @@ jobs:
           mkdir -p release build/dmg
           cp -R "dist/清账.app" build/dmg/
           ln -s /Applications build/dmg/Applications
-          hdiutil create -volname "清账 v5.3" -srcfolder build/dmg -ov -format UDZO "release/清账-macOS-v5.3.dmg"
+          hdiutil create -volname "清账 v5.4" -srcfolder build/dmg -ov -format UDZO "release/QingZhang-macOS-v5.4.dmg"
 
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v4
         with:
-          name: QingZhang-macOS-DMG-v5.3
-          path: release/清账-macOS-v5.3.dmg
+          name: QingZhang-macOS-DMG-v5.4
+          path: release/QingZhang-macOS-v5.4.dmg

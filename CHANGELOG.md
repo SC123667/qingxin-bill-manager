@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## v5.4 - 2026-04-30
+
+- Added a first-run "read existing data directory" flow that can connect to data already on the computer.
+- Detects existing data from an old project folder, an accounts_data folder, or a folder containing path_config.json.
+- Preserves existing encrypted data by requiring the original master password hash before treating a directory as readable.
+- Migrates legacy root-level master_password.hash into the selected accounts_data directory for compatibility with the current loader.
+
 ## v5.3 - 2026-04-28
 
 - Rebuilt the main window as a professional accounting workspace with sidebar navigation, a persistent account context bar, and structured content pages.
