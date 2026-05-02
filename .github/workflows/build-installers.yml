@@ -102,10 +102,21 @@ jobs:
 
       - name: Build DMG
         run: |
+          rm -rf build/dmg release/QingZhang-macOS-v5.5.dmg
           mkdir -p release build/dmg
           cp -R "dist/清账.app" build/dmg/
           ln -s /Applications build/dmg/Applications
-          hdiutil create -volname "清账 v5.5" -srcfolder build/dmg -ov -format UDZO "release/QingZhang-macOS-v5.5.dmg"
+          for attempt in 1 2 3; do
+            if hdiutil create -volname "清账 v5.5" -srcfolder build/dmg -ov -format UDZO "release/QingZhang-macOS-v5.5.dmg"; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              exit 1
+            fi
+            hdiutil detach "/Volumes/清账 v5.5" -force || true
+            pkill -f diskimages-helper || true
+            sleep 8
+          done
 
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v4
