@@ -12,6 +12,8 @@ class MainWindow(QMainWindow):
         self.bill_manager = bill_manager
         self.export_manager = ExportManager(bill_manager)
         self.adding_bill = False  # 防止重复添加的标志
+        self.recent_bills_limit = 20
+        self.show_all_recent_bills = False
         # 初始化账本列表
         self.bill_manager.load_accounts_list()
         self.setup_ui()
@@ -595,7 +597,7 @@ class MainWindow(QMainWindow):
         
         content_layout.addWidget(form_group, 0, Qt.AlignTop)
         
-        recent_group, recent_layout = self._make_section("最近账单", "默认展示最近 20 条记录，可勾选后批量删除。")
+        recent_group, recent_layout = self._make_section("最近账单", "默认展示最近 20 条记录，可切换查看全部历史记录。")
         self.recent_table = QTableWidget()
         self._configure_table(self.recent_table)
         self.recent_table.setMinimumHeight(520)
@@ -634,9 +636,18 @@ class MainWindow(QMainWindow):
         apply_button_style(clear_recent_selection_btn, 'small')
         clear_recent_selection_btn.clicked.connect(self.clear_recent_selection)
         recent_delete_layout.addWidget(clear_recent_selection_btn)
+
+        self.toggle_recent_scope_btn = QPushButton("显示全部")
+        apply_button_style(self.toggle_recent_scope_btn, 'info')
+        self.toggle_recent_scope_btn.clicked.connect(self.toggle_recent_bills_scope)
+        recent_delete_layout.addWidget(self.toggle_recent_scope_btn)
         
         recent_delete_layout.addStretch()
         recent_layout.addLayout(recent_delete_layout)
+
+        self.recent_scope_label = QLabel("当前显示最近 20 条")
+        self.recent_scope_label.setObjectName("noteLabel")
+        recent_layout.addWidget(self.recent_scope_label)
         
         content_layout.addWidget(recent_group, 1)
         layout.addLayout(content_layout, 1)
@@ -1206,6 +1217,11 @@ class MainWindow(QMainWindow):
             checkbox = self.recent_table.cellWidget(i, 0)
             if checkbox:
                 checkbox.setChecked(False)
+
+    def toggle_recent_bills_scope(self):
+        """切换最近账单显示范围。"""
+        self.show_all_recent_bills = not self.show_all_recent_bills
+        self.update_recent_bills_table()
     
     def delete_selected_recent_bills(self):
         """删除选中的最近账单"""
@@ -1219,6 +1235,10 @@ class MainWindow(QMainWindow):
                 amount = float(amount_text.replace('¥', '').replace(',', ''))
                 description = self.recent_table.item(i, 3).text()
                 date = self.recent_table.item(i, 4).text()
+                source_index = self.recent_table.item(i, 1).data(Qt.UserRole)
+                if isinstance(source_index, int):
+                    selected_bills.append((category, source_index))
+                    continue
                 
                 # 根据模式获取账单列表
                 if self.bill_manager.is_multi_person_mode_enabled():
@@ -1686,53 +1706,74 @@ class MainWindow(QMainWindow):
         finally:
             self._end_table_update(self.overview_table)
         
+        self.update_recent_bills_table()
+
+    def collect_recent_bills(self):
+        """收集当前人员或默认人员的所有账单，按时间倒序返回。"""
         all_bills = []
-        # 获取账单数据（支持单人和多人模式）
         if self.bill_manager.is_multi_person_mode_enabled():
-            # 多人模式
             current_person = self.bill_manager.get_current_person()
             if current_person in self.bill_manager.bills:
                 person_bills = self.bill_manager.bills[current_person]
                 for category, bills in person_bills.items():
-                    if category != "总预算":
-                        for bill in bills:
+                    if category != "总预算" and isinstance(bills, list):
+                        for source_index, bill in enumerate(bills):
+                            if not isinstance(bill, dict):
+                                continue
                             all_bills.append({
                                 "category": category,
-                                "amount": bill["amount"],
+                                "amount": bill.get("amount", 0),
                                 "description": bill.get("description", ""),
-                                "date": bill["date"]
+                                "date": bill.get("date", ""),
+                                "source_index": source_index,
                             })
         else:
-            # 单人模式 - 数据结构仍然是 {"默认": {category: [bills]}}
             if "默认" in self.bill_manager.bills:
                 person_bills = self.bill_manager.bills["默认"]
                 for category, bills in person_bills.items():
                     if category != "总预算" and isinstance(bills, list):
-                        for bill in bills:
+                        for source_index, bill in enumerate(bills):
                             if isinstance(bill, dict):
                                 all_bills.append({
                                     "category": category,
-                                    "amount": bill["amount"],
+                                    "amount": bill.get("amount", 0),
                                     "description": bill.get("description", ""),
-                                    "date": bill.get("date", "")
+                                    "date": bill.get("date", ""),
+                                    "source_index": source_index,
                                 })
         
         all_bills.sort(key=lambda x: x["date"], reverse=True)
-        recent_bills = all_bills[:20]
+        return all_bills
+
+    def update_recent_bills_table(self):
+        """刷新最近账单表格，支持最近记录和全部记录两种视图。"""
+        all_bills = self.collect_recent_bills()
+        visible_bills = all_bills if self.show_all_recent_bills else all_bills[:self.recent_bills_limit]
         
         self._begin_table_update(self.recent_table)
         try:
-            self.recent_table.setRowCount(len(recent_bills))
-            for i, bill in enumerate(recent_bills):
+            self.recent_table.setRowCount(len(visible_bills))
+            for i, bill in enumerate(visible_bills):
                 checkbox = QCheckBox()
                 self.recent_table.setCellWidget(i, 0, checkbox)
                 
-                self.recent_table.setItem(i, 1, QTableWidgetItem(bill["category"]))
+                category_item = QTableWidgetItem(bill["category"])
+                category_item.setData(Qt.UserRole, bill["source_index"])
+                self.recent_table.setItem(i, 1, category_item)
                 self.recent_table.setItem(i, 2, QTableWidgetItem(f"¥{bill['amount']:.2f}"))
                 self.recent_table.setItem(i, 3, QTableWidgetItem(bill["description"]))
                 self.recent_table.setItem(i, 4, QTableWidgetItem(bill["date"]))
         finally:
             self._end_table_update(self.recent_table)
+
+        if hasattr(self, "toggle_recent_scope_btn"):
+            self.toggle_recent_scope_btn.setText("显示最近20条" if self.show_all_recent_bills else "显示全部")
+        if hasattr(self, "recent_scope_label"):
+            if self.show_all_recent_bills:
+                self.recent_scope_label.setText(f"当前显示全部 {len(all_bills)} 条记录")
+            else:
+                visible_count = min(len(all_bills), self.recent_bills_limit)
+                self.recent_scope_label.setText(f"当前显示最近 {visible_count} 条，共 {len(all_bills)} 条记录")
     
     def add_custom_category(self):
         """添加自定义分类"""

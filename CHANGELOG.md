@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## v5.5 - 2026-05-03
+
+- Added a recent-bills display toggle for switching between the latest 20 records and all records.
+- Kept bulk selection and deletion working in both recent and all-record views.
+- Stored each visible recent-bill row's original source index to make deletion reliable even when duplicate records have the same amount, description, and date.
+
 ## v5.4 - 2026-04-30
 
 - Added a first-run "read existing data directory" flow that can connect to data already on the computer.
