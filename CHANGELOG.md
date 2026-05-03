@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## v5.6 - 2026-05-03
+
+- Removed descriptive helper copy from the desktop UI for a cleaner, more professional interface.
+- Simplified first-run path setup, login, sidebar navigation, page headers, export panels, and status feedback text.
+- Removed decorative emoji feedback from dialogs and status messages.
+
 ## v5.5 - 2026-05-03
 
 - Added a recent-bills display toggle for switching between the latest 20 records and all records.

@@ -13,14 +13,9 @@ def show_first_time_path_setup():
     """首次启动时显示路径设置对话框"""
     from PySide6.QtWidgets import QMessageBox
     
-    # 显示首次启动提示
     reply = QMessageBox.question(
         None, "账单管理系统", 
-        "🎉 欢迎使用账单管理系统！\n\n"
-        "这是您首次启动，需要设置数据存储路径。\n"
-        "您也可以在配置窗口中选择电脑上已有的账单数据目录。\n"
-        "是否现在进行路径配置？\n\n"
-        "点击「是」配置新目录或读取旧数据，点击「否」使用默认路径。",
+        "需要设置数据路径。现在配置？",
         QMessageBox.Yes | QMessageBox.No,
         QMessageBox.Yes
     )
@@ -91,7 +86,7 @@ def check_path_config():
 
 def main():
     app = QApplication(sys.argv)
-    app.setApplicationName("账单管理系统 v5.5")
+    app.setApplicationName("账单管理系统 v5.6")
     
     # 启用高DPI支持
     app.setAttribute(Qt.AA_EnableHighDpiScaling, True)
@@ -109,13 +104,7 @@ def main():
     
     # 如果是首次设置（没有密码文件），再次确认路径
     if bill_manager.is_first_time_setup():
-        QMessageBox.information(
-            None, "欢迎使用", 
-            "🎉 欢迎使用账单管理系统！\n\n"
-            f"📊 数据存储位置: {bill_manager.get_data_directory()}\n"
-            f"🔐 备份存储位置: {bill_manager.get_backup_directory()}\n\n"
-            "请牢记这些路径，以便日后查找您的数据。"
-        )
+        QMessageBox.information(None, "路径", "路径已保存。")
     
     # 显示登录对话框
     login_dialog = LoginDialog(bill_manager)

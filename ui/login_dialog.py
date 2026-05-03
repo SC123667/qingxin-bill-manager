@@ -15,15 +15,15 @@ class LoginDialog(QDialog):
         self.setStyleSheet(get_login_dialog_style())
         
     def setup_ui(self):
-        self.setWindowTitle("账单管理系统 - 登录")
-        self.setMinimumSize(480, 360)
-        self.resize(500, 370)
+        self.setWindowTitle("登录")
+        self.setMinimumSize(440, 300)
+        self.resize(460, 310)
         
         layout = QVBoxLayout()
         layout.setSpacing(14)
         layout.setContentsMargins(44, 34, 44, 30)
         
-        title = QLabel("账单管理系统")
+        title = QLabel("清账")
         title.setAlignment(Qt.AlignCenter)
         title.setObjectName("titleLabel")
         title.setMinimumHeight(52)
@@ -34,9 +34,9 @@ class LoginDialog(QDialog):
         is_first_time = not os.path.exists(self.bill_manager.password_file)
         
         if is_first_time:
-            prompt = QLabel("首次使用，请设置主密码")
+            prompt = QLabel("设置密码")
         else:
-            prompt = QLabel("请输入主密码")
+            prompt = QLabel("密码")
         
         prompt.setAlignment(Qt.AlignCenter)
         prompt.setObjectName("subtitleLabel")
@@ -47,13 +47,13 @@ class LoginDialog(QDialog):
         
         self.password_input = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.Password)
-        self.password_input.setPlaceholderText("请输入密码...")
+        self.password_input.setPlaceholderText("密码")
         self.password_input.setMinimumHeight(44)
         layout.addWidget(self.password_input)
         
         layout.addSpacing(8)
         
-        button_text = "设置密码" if is_first_time else "登录系统"
+        button_text = "设置" if is_first_time else "登录"
         self.login_button = QPushButton(button_text)
         self.login_button.setObjectName("primaryButton")
         self.login_button.setMinimumHeight(48)
@@ -61,14 +61,6 @@ class LoginDialog(QDialog):
         layout.addWidget(self.login_button)
         
         layout.addSpacing(8)
-        
-        # 添加提示信息
-        if is_first_time:
-            hint = QLabel("密码设置后无法修改，请牢记")
-            hint.setAlignment(Qt.AlignCenter)
-            hint.setObjectName("noteLabel")
-            hint.setMinimumHeight(24)
-            layout.addWidget(hint)
         
         layout.addStretch(1)
         
@@ -81,20 +73,20 @@ class LoginDialog(QDialog):
         password = self.password_input.text()
         
         if not password:
-            QMessageBox.warning(self, "错误", "请输入密码!")
+            QMessageBox.warning(self, "错误", "密码为空。")
             return
         
         if not os.path.exists(self.bill_manager.password_file):
             if self.bill_manager.setup_password(password):
                 self.password = password
-                QMessageBox.information(self, "成功", "密码设置成功!\n密码备份文件已创建，请妥善保管。")
+                QMessageBox.information(self, "成功", "密码已设置。")
                 self.accept()
             else:
-                QMessageBox.critical(self, "错误", "密码设置失败!")
+                QMessageBox.critical(self, "错误", "设置失败。")
         else:
             if self.bill_manager.verify_password(password):
                 self.password = password
                 self.accept()
             else:
-                QMessageBox.critical(self, "错误", "密码错误!")
+                QMessageBox.critical(self, "错误", "密码错误。")
                 self.password_input.clear()

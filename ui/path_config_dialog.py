@@ -161,9 +161,9 @@ class PathConfigDialog(QDialog):
         self.setStyleSheet(get_path_config_style())
         
     def setup_ui(self):
-        self.setWindowTitle("数据存储路径设置")
-        self.setMinimumSize(860, 700)
-        self.resize(900, 730)
+        self.setWindowTitle("数据路径")
+        self.setMinimumSize(820, 610)
+        self.resize(860, 640)
         self.setModal(True)
         
         layout = QVBoxLayout(self)
@@ -176,59 +176,48 @@ class PathConfigDialog(QDialog):
         header_layout.setContentsMargins(20, 18, 20, 18)
         header_layout.setSpacing(8)
 
-        title = QLabel("数据存储路径配置")
+        title = QLabel("数据路径")
         title.setAlignment(Qt.AlignCenter)
         title.setObjectName("titleLabel")
         header_layout.addWidget(title)
-        
-        if self.is_first_time:
-            info_text = "欢迎首次使用账单管理系统。您可以创建新的数据目录，也可以读取电脑上已有的账单数据。"
-        else:
-            info_text = "请选择账单数据与密码备份的保存位置，也可以切换到已有数据目录。"
-        
-        info_label = QLabel(info_text)
-        info_label.setAlignment(Qt.AlignCenter)
-        info_label.setWordWrap(True)
-        info_label.setObjectName("dialogLead")
-        header_layout.addWidget(info_label)
         layout.addWidget(header)
         
         # 路径配置组
-        path_group = QGroupBox("存储路径设置")
-        path_group.setMinimumHeight(260)
+        path_group = QGroupBox("存储")
+        path_group.setMinimumHeight(210)
         path_layout = QGridLayout()
         path_layout.setHorizontalSpacing(12)
         path_layout.setVerticalSpacing(12)
         path_layout.setContentsMargins(18, 26, 18, 18)
         
         # 数据路径设置
-        data_label = QLabel("账单数据存储路径")
+        data_label = QLabel("账单数据")
         data_label.setMinimumWidth(140)
         path_layout.addWidget(data_label, 0, 0)
         
         self.data_path_input = QLineEdit()
-        self.data_path_input.setPlaceholderText("选择账单数据存储文件夹...")
+        self.data_path_input.setPlaceholderText("账单数据目录")
         self.data_path_input.setReadOnly(True)
         self.data_path_input.setMinimumHeight(42)
         path_layout.addWidget(self.data_path_input, 0, 1)
         
-        data_browse_btn = QPushButton("浏览...")
+        data_browse_btn = QPushButton("浏览")
         data_browse_btn.setMinimumSize(104, 42)
         data_browse_btn.clicked.connect(self.browse_data_path)
         path_layout.addWidget(data_browse_btn, 0, 2)
         
         # 备份路径设置
-        backup_label = QLabel("密码备份存储路径")
+        backup_label = QLabel("密码备份")
         backup_label.setMinimumWidth(140)
         path_layout.addWidget(backup_label, 1, 0)
         
         self.backup_path_input = QLineEdit()
-        self.backup_path_input.setPlaceholderText("选择密码备份存储文件夹...")
+        self.backup_path_input.setPlaceholderText("密码备份目录")
         self.backup_path_input.setReadOnly(True)
         self.backup_path_input.setMinimumHeight(42)
         path_layout.addWidget(self.backup_path_input, 1, 1)
         
-        backup_browse_btn = QPushButton("浏览...")
+        backup_browse_btn = QPushButton("浏览")
         backup_browse_btn.setMinimumSize(104, 42)
         backup_browse_btn.clicked.connect(self.browse_backup_path)
         path_layout.addWidget(backup_browse_btn, 1, 2)
@@ -247,18 +236,18 @@ class PathConfigDialog(QDialog):
         import_text_layout = QVBoxLayout()
         import_text_layout.setSpacing(4)
 
-        import_title = QLabel("读取已有数据")
+        import_title = QLabel("已有数据")
         import_title.setObjectName("importTitle")
         import_text_layout.addWidget(import_title)
 
-        self.import_status_label = QLabel("可选择旧版程序目录、accounts_data 数据目录，或包含 path_config.json 的目录。")
+        self.import_status_label = QLabel("未选择")
         self.import_status_label.setObjectName("importHint")
         self.import_status_label.setWordWrap(True)
         import_text_layout.addWidget(self.import_status_label)
 
         import_layout.addLayout(import_text_layout, 1)
 
-        import_existing_btn = QPushButton("读取已有数据目录")
+        import_existing_btn = QPushButton("读取")
         import_existing_btn.setObjectName("importButton")
         import_existing_btn.setMinimumSize(156, 42)
         import_existing_btn.clicked.connect(self.browse_existing_data_path)
@@ -353,12 +342,8 @@ class PathConfigDialog(QDialog):
         if not detected:
             QMessageBox.warning(
                 self,
-                "未识别到已有数据",
-                "没有在所选目录中找到清账数据。\n\n"
-                "请尝试选择以下任一目录：\n"
-                "• 包含 master_password.hash 的数据目录\n"
-                "• 旧程序目录（其中有 master_password.hash 与 accounts_data）\n"
-                "• 包含 path_config.json 的旧程序目录"
+                "未找到数据",
+                "未找到清账数据。"
             )
             return
 
@@ -375,9 +360,7 @@ class PathConfigDialog(QDialog):
         self.uses_existing_data = True
         self.existing_password_source = detected["password_source"]
 
-        self.import_status_label.setText(
-            f"已识别到 {matched_count} 个已有数据文件。保存后将使用原主密码登录并读取该目录。"
-        )
+        self.import_status_label.setText(f"已选择 {matched_count} 个文件")
 
     def path_has_existing_data(self, data_path):
         detected = detect_existing_data_paths(data_path)
@@ -386,9 +369,9 @@ class PathConfigDialog(QDialog):
 
     def update_import_status(self):
         if self.uses_existing_data:
-            self.import_status_label.setText("已选择已有数据目录。保存后将使用原主密码登录并读取该目录。")
+            self.import_status_label.setText("已选择")
         else:
-            self.import_status_label.setText("可选择旧版程序目录、accounts_data 数据目录，或包含 path_config.json 的目录。")
+            self.import_status_label.setText("未选择")
     
     def set_desktop_path(self):
         """设置为桌面路径"""
@@ -445,7 +428,7 @@ class PathConfigDialog(QDialog):
         backup_path = self.backup_path_input.text().strip()
         
         if not data_path or not backup_path:
-            QMessageBox.warning(self, "警告", "请设置数据存储路径和备份路径！")
+            QMessageBox.warning(self, "警告", "路径为空。")
             return
 
         self.uses_existing_data = self.path_has_existing_data(data_path)
@@ -485,14 +468,7 @@ class PathConfigDialog(QDialog):
         
         # 显示成功消息
         if self.is_first_time:
-            next_step = "现在请输入已有数据的原主密码。" if self.uses_existing_data else "现在请设置您的主密码。"
-            QMessageBox.information(
-                self, "设置成功",
-                f"✅ 路径设置成功！\n\n"
-                f"📊 数据路径：{data_path}\n"
-                f"🔐 备份路径：{backup_path}\n\n"
-                f"{next_step}"
-            )
+            QMessageBox.information(self, "成功", "路径已保存。")
         
         self.accept()
     

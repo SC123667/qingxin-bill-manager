@@ -74,26 +74,23 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(18, 22, 18, 18)
         layout.setSpacing(10)
 
-        brand = QLabel("清新账本")
+        brand = QLabel("清账")
         brand.setObjectName("brandLabel")
         layout.addWidget(brand)
 
-        subtitle = QLabel("本地优先的专业记账")
-        subtitle.setObjectName("brandSubLabel")
-        layout.addWidget(subtitle)
         layout.addSpacing(18)
 
         self.nav_buttons = []
         nav_items = [
-            ("总览", "预算、支出与分类统计"),
-            ("记一笔", "快速录入新的账单"),
-            ("账单流水", "搜索与管理历史记录"),
-            ("转账平账", "多人账本结算"),
-            ("导出报表", "Excel 与图表导出"),
-            ("账本设置", "账本与数据设置"),
+            "总览",
+            "记一笔",
+            "账单流水",
+            "转账平账",
+            "导出报表",
+            "账本设置",
         ]
-        for index, (title, desc) in enumerate(nav_items):
-            button = self._create_nav_button(title, desc, index)
+        for index, title in enumerate(nav_items):
+            button = self._create_nav_button(title, index)
             self.nav_buttons.append(button)
             layout.addWidget(button)
 
@@ -111,8 +108,8 @@ class MainWindow(QMainWindow):
 
         return sidebar
 
-    def _create_nav_button(self, title, desc, index):
-        button = QPushButton(f"{title}\n{desc}")
+    def _create_nav_button(self, title, index):
+        button = QPushButton(title)
         button.setObjectName("navButton")
         button.setCheckable(True)
         button.setCursor(Qt.PointingHandCursor)
@@ -193,7 +190,7 @@ class MainWindow(QMainWindow):
 
         return bar
 
-    def _create_page(self, title, subtitle):
+    def _create_page(self, title, subtitle=None):
         scroll = QScrollArea()
         scroll.setObjectName("pageScroll")
         scroll.setWidgetResizable(True)
@@ -207,11 +204,7 @@ class MainWindow(QMainWindow):
 
         title_label = QLabel(title)
         title_label.setObjectName("pageTitle")
-        subtitle_label = QLabel(subtitle)
-        subtitle_label.setObjectName("pageSubtitle")
-        subtitle_label.setWordWrap(True)
         layout.addWidget(title_label)
-        layout.addWidget(subtitle_label)
 
         scroll.setWidget(page)
         return scroll, layout
@@ -227,12 +220,6 @@ class MainWindow(QMainWindow):
         title_label = QLabel(title)
         title_label.setObjectName("sectionTitle")
         layout.addWidget(title_label)
-
-        if subtitle:
-            subtitle_label = QLabel(subtitle)
-            subtitle_label.setObjectName("sectionSubtitle")
-            subtitle_label.setWordWrap(True)
-            layout.addWidget(subtitle_label)
 
         return section, layout
 
@@ -443,9 +430,9 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage("就绪")
     
     def create_overview_tab(self):
-        widget, layout = self._create_page("财务总览", "集中查看预算、支出余额和分类占比，快速判断当前账本的资金状态。")
+        widget, layout = self._create_page("财务总览")
         
-        budget_group, budget_layout_outer = self._make_section("预算控制", "设置全局预算后，系统会自动计算当前支出和剩余额度。")
+        budget_group, budget_layout_outer = self._make_section("预算")
         budget_layout = QHBoxLayout()
         budget_layout.setSpacing(12)
         
@@ -480,7 +467,7 @@ class MainWindow(QMainWindow):
         balance_layout.setColumnStretch(2, 1)
         layout.addLayout(balance_layout)
         
-        overview_group, overview_layout = self._make_section("分类支出统计", "双击备注列可以维护分类备注，用于导出总账或日后复盘。")
+        overview_group, overview_layout = self._make_section("分类")
         self.overview_table = QTableWidget()
         self._configure_table(self.overview_table)
         self.overview_table.setMinimumHeight(390)
@@ -503,15 +490,12 @@ class MainWindow(QMainWindow):
         
         overview_layout.addWidget(self.overview_table)
         
-        note_hint = self._make_note_label("提示：双击备注列可编辑分类备注")
-        overview_layout.addWidget(note_hint)
-        
         layout.addWidget(overview_group, 1)
         
         return widget
     
     def create_add_bill_tab(self):
-        widget, layout = self._create_page("记一笔", "高频录入区保持紧凑，右侧同步展示最近记录，适合连续记账。")
+        widget, layout = self._create_page("记一笔")
 
         content_layout = QHBoxLayout()
         content_layout.setSpacing(18)
@@ -577,8 +561,8 @@ class MainWindow(QMainWindow):
         form_layout.addRow("金额:", amount_widget)
         
         self.description_input = QLineEdit()
-        self.description_input.setPlaceholderText("备注信息（可选）")
-        form_layout.addRow("描述:", self.description_input)
+        self.description_input.setPlaceholderText("备注")
+        form_layout.addRow("备注:", self.description_input)
         
         add_btn = QPushButton("添加账单")
         add_btn.setMinimumHeight(44)
@@ -597,12 +581,12 @@ class MainWindow(QMainWindow):
         
         content_layout.addWidget(form_group, 0, Qt.AlignTop)
         
-        recent_group, recent_layout = self._make_section("最近账单", "默认展示最近 20 条记录，可切换查看全部历史记录。")
+        recent_group, recent_layout = self._make_section("最近账单")
         self.recent_table = QTableWidget()
         self._configure_table(self.recent_table)
         self.recent_table.setMinimumHeight(520)
         self.recent_table.setColumnCount(5)
-        self.recent_table.setHorizontalHeaderLabels(["选择", "分类", "金额", "描述", "日期"])
+        self.recent_table.setHorizontalHeaderLabels(["选择", "分类", "金额", "备注", "日期"])
         self.recent_table.setSelectionBehavior(QAbstractItemView.SelectRows)
         
         header = self.recent_table.horizontalHeader()
@@ -645,7 +629,7 @@ class MainWindow(QMainWindow):
         recent_delete_layout.addStretch()
         recent_layout.addLayout(recent_delete_layout)
 
-        self.recent_scope_label = QLabel("当前显示最近 20 条")
+        self.recent_scope_label = QLabel("最近 20")
         self.recent_scope_label.setObjectName("noteLabel")
         recent_layout.addWidget(self.recent_scope_label)
         
@@ -655,7 +639,7 @@ class MainWindow(QMainWindow):
         return widget
     
     def create_search_tab(self):
-        widget, layout = self._create_page("账单流水", "按关键词检索历史账单，并在同一个工作区完成选择、清除和删除。")
+        widget, layout = self._create_page("账单流水")
         
         search_group, search_outer_layout = self._make_section("流水检索")
         search_layout = QHBoxLayout()
@@ -663,7 +647,7 @@ class MainWindow(QMainWindow):
         
         search_layout.addWidget(QLabel("关键词:"))
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("输入分类、描述、金额或日期关键词...")
+        self.search_input.setPlaceholderText("关键词")
         search_layout.addWidget(self.search_input, 1)
         
         search_btn = QPushButton("搜索")
@@ -674,12 +658,12 @@ class MainWindow(QMainWindow):
         
         layout.addWidget(search_group)
         
-        results_group, results_layout = self._make_section("检索结果", "结果表格保留原有删除逻辑，勾选左侧复选框后执行批量操作。")
+        results_group, results_layout = self._make_section("检索结果")
         self.search_table = QTableWidget()
         self._configure_table(self.search_table)
         self.search_table.setMinimumHeight(520)
         self.search_table.setColumnCount(5)
-        self.search_table.setHorizontalHeaderLabels(["选择", "分类", "金额", "描述", "日期"])
+        self.search_table.setHorizontalHeaderLabels(["选择", "分类", "金额", "备注", "日期"])
         self.search_table.setSelectionBehavior(QAbstractItemView.SelectRows)
         
         header = self.search_table.horizontalHeader()
@@ -725,7 +709,7 @@ class MainWindow(QMainWindow):
     
     def create_transfer_tab(self):
         """创建转账平账标签页"""
-        widget, layout = self._create_page("转账平账", "多人账本下设置主账单人员，记录转账并查看每个人的结算状态。")
+        widget, layout = self._create_page("转账平账")
 
         top_layout = QHBoxLayout()
         top_layout.setSpacing(18)
@@ -790,8 +774,8 @@ class MainWindow(QMainWindow):
         form_layout.addRow("转账金额:", transfer_amount_widget)
         
         self.transfer_description_input = QLineEdit()
-        self.transfer_description_input.setPlaceholderText("转账说明（可选）")
-        form_layout.addRow("转账说明:", self.transfer_description_input)
+        self.transfer_description_input.setPlaceholderText("备注")
+        form_layout.addRow("备注:", self.transfer_description_input)
         
         transfer_layout.addLayout(form_layout)
         
@@ -841,7 +825,7 @@ class MainWindow(QMainWindow):
         self._configure_table(self.transfer_history_table)
         self.transfer_history_table.setMinimumHeight(360)
         self.transfer_history_table.setColumnCount(5)
-        self.transfer_history_table.setHorizontalHeaderLabels(["人员", "金额", "说明", "日期", "类型"])
+        self.transfer_history_table.setHorizontalHeaderLabels(["人员", "金额", "备注", "日期", "类型"])
         
         header = self.transfer_history_table.horizontalHeader()
         header.setStretchLastSection(False)
@@ -862,14 +846,14 @@ class MainWindow(QMainWindow):
         return widget
     
     def create_export_tab(self):
-        widget, layout = self._create_page("导出报表", "按当前账本数据生成 Excel 明细或 PNG 图表，适合归档与分享。")
+        widget, layout = self._create_page("导出报表")
         
         settings_group, settings_layout = self._make_section("报表设置")
         
         # 时间导出选项
         time_layout = QHBoxLayout()
-        time_layout.addWidget(QLabel("时间选项:"))
-        self.include_time_checkbox = QCheckBox("包含时间信息")
+        time_layout.addWidget(QLabel("时间:"))
+        self.include_time_checkbox = QCheckBox("包含")
         self.include_time_checkbox.setChecked(True)  # 默认包含时间
         time_layout.addWidget(self.include_time_checkbox)
         time_layout.addStretch()
@@ -877,7 +861,7 @@ class MainWindow(QMainWindow):
         
         # 导出模式选项
         mode_layout = QHBoxLayout()
-        mode_layout.addWidget(QLabel("导出模式:"))
+        mode_layout.addWidget(QLabel("模式:"))
         self.export_mode_group = QButtonGroup()
         self.detail_mode_radio = QRadioButton("明细模式")
         self.summary_mode_radio = QRadioButton("总账模式")
@@ -890,10 +874,6 @@ class MainWindow(QMainWindow):
         mode_layout.addWidget(self.summary_mode_radio)
         mode_layout.addStretch()
         settings_layout.addLayout(mode_layout)
-        
-        # 添加说明文本
-        help_text = self._make_note_label("明细模式：导出所有账单的详细信息\n总账模式：仅导出各分类的汇总金额和备注")
-        settings_layout.addWidget(help_text)
         
         layout.addWidget(settings_group)
         
@@ -931,10 +911,6 @@ class MainWindow(QMainWindow):
             lambda checked: self.export_person_combo.setEnabled(checked)
         )
         
-        # 添加人员导出说明
-        person_help_text = self._make_note_label("当前人员：导出当前选中人员的数据\n所有人员：导出所有人员的数据（多人模式）\n指定人员：导出选择的特定人员数据")
-        person_export_layout.addWidget(person_help_text)
-        
         layout.addWidget(self.person_export_group)
         
         # 初始化人员导出组的显示状态
@@ -953,7 +929,6 @@ class MainWindow(QMainWindow):
         excel_title = QLabel("Excel 明细/总账")
         excel_title.setObjectName("miniPanelTitle")
         excel_layout.addWidget(excel_title)
-        excel_layout.addWidget(self._make_note_label("适合继续统计、筛选或打印归档。"))
         excel_btn = QPushButton("导出为 Excel")
         apply_button_style(excel_btn, 'primary')
         excel_btn.clicked.connect(self.export_excel)
@@ -969,7 +944,6 @@ class MainWindow(QMainWindow):
         png_title = QLabel("PNG 支出图表")
         png_title.setObjectName("miniPanelTitle")
         png_layout.addWidget(png_title)
-        png_layout.addWidget(self._make_note_label("适合快速查看分类分布或发送给他人。"))
         png_btn = QPushButton("导出为 PNG 图表")
         apply_button_style(png_btn, 'info')
         png_btn.clicked.connect(self.export_png)
@@ -985,7 +959,7 @@ class MainWindow(QMainWindow):
     
     def create_account_management_tab(self):
         """创建账本管理标签页"""
-        widget, layout = self._create_page("账本设置", "管理多个账本的创建、切换、重命名和删除，当前账本会同步显示在顶部状态栏。")
+        widget, layout = self._create_page("账本设置")
         
         current_group, current_layout = self._make_section("当前账本")
         
@@ -995,7 +969,7 @@ class MainWindow(QMainWindow):
         
         layout.addWidget(current_group)
         
-        list_group, list_layout = self._make_section("所有账本", "双击非当前账本可直接切换。删除操作会再次确认。")
+        list_group, list_layout = self._make_section("所有账本")
         
         self.accounts_table = QTableWidget()
         self._configure_table(self.accounts_table)
@@ -1047,7 +1021,7 @@ class MainWindow(QMainWindow):
             self.load_data()
             self.status_bar.showMessage(f"全局预算已设置为 ¥{budget:.2f}")
         else:
-            self.status_bar.showMessage("预算设置失败，请输入有效数值")
+            self.status_bar.showMessage("预算无效")
     
     def add_bill(self):
         # 防止重复触发
@@ -1065,7 +1039,7 @@ class MainWindow(QMainWindow):
             amount = 0
             
         if amount <= 0:
-            self.status_bar.showMessage("请输入大于0的金额")
+            self.status_bar.showMessage("金额无效")
             self.amount_input.setFocus()
             self.amount_input.selectAll()
             return
@@ -1087,17 +1061,17 @@ class MainWindow(QMainWindow):
                 
                 # 在多人模式下显示人员信息
                 if self.bill_manager.is_multi_person_mode_enabled() and target_person:
-                    self.status_bar.showMessage(f"✅ 已为 {target_person} 添加 {category}: ¥{amount:.2f}")
+                    self.status_bar.showMessage(f"{target_person} · {category} ¥{amount:.2f}")
                 else:
-                    self.status_bar.showMessage(f"✅ 已添加 {category}: ¥{amount:.2f}")
+                    self.status_bar.showMessage(f"{category} ¥{amount:.2f}")
                 
                 # 聚焦到金额输入框，方便继续添加
                 self.amount_input.setFocus()
             else:
-                self.status_bar.showMessage("❌ 账单添加失败，请重试")
+                self.status_bar.showMessage("添加失败")
                 
         except Exception as e:
-            self.status_bar.showMessage(f"❌ 添加失败: {str(e)}")
+            self.status_bar.showMessage(f"添加失败: {str(e)}")
             
         finally:
             # 重置添加标志
@@ -1106,7 +1080,7 @@ class MainWindow(QMainWindow):
     def search_bills(self):
         keyword = self.search_input.text().strip()
         if not keyword:
-            QMessageBox.warning(self, "提示", "请输入搜索关键词!")
+            QMessageBox.warning(self, "提示", "关键词为空。")
             return
         
         self._perform_search(keyword)
@@ -1182,12 +1156,12 @@ class MainWindow(QMainWindow):
                         break
         
         if not selected_bills:
-            QMessageBox.warning(self, "提示", "请先选择要删除的账单！\n\n请勾选账单左侧的复选框。")
+            QMessageBox.warning(self, "提示", "请选择账单。")
             return
         
         reply = QMessageBox.question(
             self, "确认删除", 
-            f"确定要删除选中的 {len(selected_bills)} 条账单吗?\n\n此操作不可撤销!",
+            f"删除 {len(selected_bills)} 条账单？",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No)
         
@@ -1199,8 +1173,8 @@ class MainWindow(QMainWindow):
                 keyword = self.search_input.text().strip()
                 if keyword:
                     self._perform_search(keyword)
-                QMessageBox.information(self, "成功", f"已删除 {len(deleted_bills)} 条账单!")
-                self.status_bar.showMessage(f"✅ 已删除 {len(deleted_bills)} 条账单")
+                QMessageBox.information(self, "成功", f"已删除 {len(deleted_bills)} 条。")
+                self.status_bar.showMessage(f"已删除 {len(deleted_bills)} 条")
             else:
                 QMessageBox.critical(self, "错误", "删除失败!")
     
@@ -1264,12 +1238,12 @@ class MainWindow(QMainWindow):
                         break
         
         if not selected_bills:
-            QMessageBox.warning(self, "提示", "请先选择要删除的账单！\n\n请勾选账单左侧的复选框。")
+            QMessageBox.warning(self, "提示", "请选择账单。")
             return
         
         reply = QMessageBox.question(
             self, "确认删除", 
-            f"确定要删除选中的 {len(selected_bills)} 条账单吗?\n\n此操作不可撤销!",
+            f"删除 {len(selected_bills)} 条账单？",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No)
         
@@ -1277,8 +1251,8 @@ class MainWindow(QMainWindow):
             deleted_bills = self.bill_manager.delete_bills_batch(selected_bills)
             if deleted_bills:
                 self.load_data()  # 刷新数据
-                QMessageBox.information(self, "成功", f"已删除 {len(deleted_bills)} 条账单!")
-                self.status_bar.showMessage(f"✅ 已删除 {len(deleted_bills)} 条账单")
+                QMessageBox.information(self, "成功", f"已删除 {len(deleted_bills)} 条。")
+                self.status_bar.showMessage(f"已删除 {len(deleted_bills)} 条")
             else:
                 QMessageBox.critical(self, "错误", "删除失败!")
     
@@ -1306,7 +1280,7 @@ class MainWindow(QMainWindow):
         # 显示编辑对话框
         note, ok = QInputDialog.getText(
             self, f"编辑 {category} 备注", 
-            "请输入备注:", 
+            "备注:",
             QLineEdit.Normal, current_note)
         
         if ok:
@@ -1314,9 +1288,9 @@ class MainWindow(QMainWindow):
             if self.bill_manager.set_category_note(category, note):
                 # 更新表格显示
                 self.overview_table.setItem(row, 3, QTableWidgetItem(note))
-                self.status_bar.showMessage(f"✅ 已更新 {category} 的备注")
+                self.status_bar.showMessage("备注已更新")
             else:
-                QMessageBox.critical(self, "错误", "备注保存失败!")
+                QMessageBox.critical(self, "错误", "保存失败。")
     
     def update_window_title(self):
         """更新窗口标题显示当前账本和人员"""
@@ -1357,9 +1331,9 @@ class MainWindow(QMainWindow):
             if hasattr(self, 'accounts_table'):
                 self.update_accounts_table()
                 
-            self.status_bar.showMessage(f"✅ 已切换到账本: {account_name}")
+            self.status_bar.showMessage(f"当前账本: {account_name}")
         else:
-            QMessageBox.critical(self, "错误", "切换账本失败!")
+            QMessageBox.critical(self, "错误", "切换失败。")
             # 恢复下拉框到之前的选择
             self.account_combo.blockSignals(True)
             self.account_combo.setCurrentText(self.bill_manager.current_account)
@@ -1368,17 +1342,17 @@ class MainWindow(QMainWindow):
     def show_new_account_dialog(self):
         """显示新建账本对话框"""
         account_name, ok = QInputDialog.getText(
-            self, "新建账本", "请输入账本名称:", 
+            self, "新建账本", "账本名称:",
             QLineEdit.Normal, "")
         
         if ok and account_name:
             account_name = account_name.strip()
             if not account_name:
-                QMessageBox.warning(self, "错误", "账本名称不能为空!")
+                QMessageBox.warning(self, "错误", "名称为空。")
                 return
                 
             if account_name in self.bill_manager.accounts_list:
-                QMessageBox.warning(self, "错误", "账本已存在!")
+                QMessageBox.warning(self, "错误", "账本已存在。")
                 return
                 
             if self.bill_manager.create_new_account(account_name):
@@ -1386,10 +1360,10 @@ class MainWindow(QMainWindow):
                 self.account_combo.addItem(account_name)
                 if hasattr(self, 'accounts_table'):
                     self.update_accounts_table()
-                QMessageBox.information(self, "成功", f"账本 '{account_name}' 创建成功!")
-                self.status_bar.showMessage(f"账本 '{account_name}' 创建成功")
+                QMessageBox.information(self, "成功", "已创建。")
+                self.status_bar.showMessage(f"已创建: {account_name}")
             else:
-                QMessageBox.critical(self, "错误", "创建账本失败!")
+                QMessageBox.critical(self, "错误", "创建失败。")
     
     def delete_current_account(self):
         """删除当前账本"""
@@ -1397,12 +1371,12 @@ class MainWindow(QMainWindow):
         
         # 检查是否只剩一个账本
         if len(self.bill_manager.accounts_list) <= 1:
-            QMessageBox.warning(self, "提示", "至少需要保留一个账本!")
+            QMessageBox.warning(self, "提示", "至少保留一个账本。")
             return
             
         reply = QMessageBox.question(
             self, "确认删除", 
-            f"确定要删除账本 '{current}' 吗?\n\n此操作不可撤销，所有数据将被永久删除!",
+            f"删除账本 '{current}'？",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No)
         
@@ -1432,19 +1406,19 @@ class MainWindow(QMainWindow):
         """删除选中的账本"""
         current_row = self.accounts_table.currentRow()
         if current_row < 0:
-            QMessageBox.warning(self, "提示", "请选择要删除的账本!")
+            QMessageBox.warning(self, "提示", "请选择账本。")
             return
             
         account_name = self.accounts_table.item(current_row, 0).text()
         
         # 检查是否只剩一个账本
         if len(self.bill_manager.accounts_list) <= 1:
-            QMessageBox.warning(self, "提示", "至少需要保留一个账本!")
+            QMessageBox.warning(self, "提示", "至少保留一个账本。")
             return
             
         reply = QMessageBox.question(
             self, "确认删除", 
-            f"确定要删除账本 '{account_name}' 吗?\n\n此操作不可撤销，所有数据将被永久删除!",
+            f"删除账本 '{account_name}'？",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No)
         
@@ -1475,7 +1449,7 @@ class MainWindow(QMainWindow):
         """重命名选中的账本"""
         current_row = self.accounts_table.currentRow()
         if current_row < 0:
-            QMessageBox.warning(self, "提示", "请选择要重命名的账本!")
+            QMessageBox.warning(self, "提示", "请选择账本。")
             return
             
         old_name = self.accounts_table.item(current_row, 0).text()
@@ -1483,7 +1457,7 @@ class MainWindow(QMainWindow):
         # 弹出输入对话框
         new_name, ok = QInputDialog.getText(
             self, "重命名账本", 
-            f"请输入账本 '{old_name}' 的新名称:",
+            "新名称:",
             text=old_name)
         
         if ok and new_name:
@@ -1503,7 +1477,7 @@ class MainWindow(QMainWindow):
                     
                 self.update_accounts_table()
                 QMessageBox.information(self, "成功", message)
-                self.status_bar.showMessage(f"账本已重命名为 '{new_name}'")
+                self.status_bar.showMessage(f"已重命名: {new_name}")
             else:
                 QMessageBox.critical(self, "错误", message)
     
@@ -1514,7 +1488,7 @@ class MainWindow(QMainWindow):
         # 弹出输入对话框
         new_name, ok = QInputDialog.getText(
             self, "重命名账本", 
-            f"请输入账本 '{old_name}' 的新名称:",
+            "新名称:",
             text=old_name)
         
         if ok and new_name:
@@ -1533,7 +1507,7 @@ class MainWindow(QMainWindow):
                     self.update_accounts_table()
                     
                 QMessageBox.information(self, "成功", message)
-                self.status_bar.showMessage(f"账本已重命名为 '{new_name}'")
+                self.status_bar.showMessage(f"已重命名: {new_name}")
             else:
                 QMessageBox.critical(self, "错误", message)
     
@@ -1603,10 +1577,10 @@ class MainWindow(QMainWindow):
         
         if filename:
             if self.export_manager.export_to_excel(filename, include_time, detail_mode, target_person, export_all_persons):
-                QMessageBox.information(self, "成功", f"Excel文件已导出到:\n{filename}")
-                self.status_bar.showMessage(f"Excel导出完成 - {mode_suffix}模式{person_suffix}")
+                QMessageBox.information(self, "成功", f"已导出:\n{filename}")
+                self.status_bar.showMessage("Excel 已导出")
             else:
-                QMessageBox.critical(self, "错误", "Excel导出失败!")
+                QMessageBox.critical(self, "错误", "导出失败。")
     
     def export_png(self):
         # 获取导出设置
@@ -1621,10 +1595,10 @@ class MainWindow(QMainWindow):
         
         if filename:
             if self.export_manager.export_to_png(filename, include_time, detail_mode):
-                QMessageBox.information(self, "成功", f"PNG图表已导出到:\n{filename}")
-                self.status_bar.showMessage(f"PNG导出完成 - {mode_suffix}模式")
+                QMessageBox.information(self, "成功", f"已导出:\n{filename}")
+                self.status_bar.showMessage("PNG 已导出")
             else:
-                QMessageBox.critical(self, "错误", "PNG导出失败，可能没有支出数据!")
+                QMessageBox.critical(self, "错误", "导出失败。")
     
     def load_data(self):
         # 确保当前模式至少有一个账本
@@ -1770,14 +1744,14 @@ class MainWindow(QMainWindow):
             self.toggle_recent_scope_btn.setText("显示最近20条" if self.show_all_recent_bills else "显示全部")
         if hasattr(self, "recent_scope_label"):
             if self.show_all_recent_bills:
-                self.recent_scope_label.setText(f"当前显示全部 {len(all_bills)} 条记录")
+                self.recent_scope_label.setText(f"全部 {len(all_bills)}")
             else:
                 visible_count = min(len(all_bills), self.recent_bills_limit)
-                self.recent_scope_label.setText(f"当前显示最近 {visible_count} 条，共 {len(all_bills)} 条记录")
+                self.recent_scope_label.setText(f"最近 {visible_count} / {len(all_bills)}")
     
     def add_custom_category(self):
         """添加自定义分类"""
-        text, ok = QInputDialog.getText(self, "添加自定义分类", "请输入分类名称:")
+        text, ok = QInputDialog.getText(self, "添加自定义分类", "分类名称:")
         
         if ok and text:
             success, message = self.bill_manager.add_custom_category(text)
@@ -1792,16 +1766,16 @@ class MainWindow(QMainWindow):
         """删除自定义分类"""
         current_category = self.category_combo.currentText()
         if not current_category:
-            QMessageBox.warning(self, "错误", "请先选择要删除的分类")
+            QMessageBox.warning(self, "错误", "请选择分类。")
             return
         
         if not self.bill_manager.is_custom_category(current_category):
-            QMessageBox.warning(self, "错误", "只能删除自定义分类")
+            QMessageBox.warning(self, "错误", "仅限自定义分类。")
             return
         
         reply = QMessageBox.question(
             self, "确认删除", 
-            f"确定要删除分类 '{current_category}' 吗？\n删除后该分类下的所有账单将无法恢复。",
+            f"删除分类 '{current_category}'？",
             QMessageBox.Yes | QMessageBox.No
         )
         
@@ -1886,7 +1860,7 @@ class MainWindow(QMainWindow):
             # 切换到单人模式
             reply = QMessageBox.question(
                 self, "确认切换", 
-                "确定要切换到单人模式吗？\\n切换后将只显示默认人员的账单。",
+                "切换到单人模式？",
                 QMessageBox.Yes | QMessageBox.No
             )
             if reply == QMessageBox.Yes:
@@ -1895,7 +1869,7 @@ class MainWindow(QMainWindow):
             # 切换到多人模式
             reply = QMessageBox.question(
                 self, "确认切换", 
-                "确定要切换到多人模式吗？\\n切换后可以管理多个人员的账单。",
+                "切换到多人模式？",
                 QMessageBox.Yes | QMessageBox.No
             )
             if reply == QMessageBox.Yes:
@@ -1911,7 +1885,7 @@ class MainWindow(QMainWindow):
     
     def add_person(self):
         """添加新人员"""
-        text, ok = QInputDialog.getText(self, "添加人员", "请输入人员名称:")
+        text, ok = QInputDialog.getText(self, "添加人员", "人员名称:")
         
         if ok and text:
             success, message = self.bill_manager.add_person(text)
@@ -1926,16 +1900,16 @@ class MainWindow(QMainWindow):
         """删除人员"""
         current_person = self.person_combo.currentText()
         if not current_person:
-            QMessageBox.warning(self, "错误", "请先选择要删除的人员")
+            QMessageBox.warning(self, "错误", "请选择人员。")
             return
         
         if current_person == "默认":
-            QMessageBox.warning(self, "错误", "不能删除默认人员")
+            QMessageBox.warning(self, "错误", "默认人员不可删除。")
             return
         
         reply = QMessageBox.question(
             self, "确认删除", 
-            f"确定要删除人员 '{current_person}' 吗？\\n删除后该人员的所有账单将无法恢复。",
+            f"删除人员 '{current_person}'？",
             QMessageBox.Yes | QMessageBox.No
         )
         
@@ -2008,33 +1982,20 @@ class MainWindow(QMainWindow):
     def _create_loading_dialog(self, target_mode):
         """创建加载动画对话框"""
         dialog = QDialog(self)
-        dialog.setWindowTitle("模式切换中...")
+        dialog.setWindowTitle("切换中")
         dialog.setFixedSize(400, 150)
         dialog.setWindowFlag(Qt.WindowCloseButtonHint, False)  # 禁用关闭按钮
         dialog.setModal(True)
         
         layout = QVBoxLayout(dialog)
         
-        # 添加图标和文字
-        icon_label = QLabel()
-        if target_mode == "multi":
-            icon_label.setText("👥")
-            text = "正在切换到多人模式..."
-        else:
-            icon_label.setText("👤")
-            text = "正在切换到单人模式..."
-        
-        icon_label.setAlignment(Qt.AlignCenter)
-        icon_label.setObjectName("metricValue")
-        
-        text_label = QLabel(text)
+        text_label = QLabel("切换中")
         text_label.setAlignment(Qt.AlignCenter)
         
         # 添加进度条动画
         progress_bar = QProgressBar()
         progress_bar.setRange(0, 0)  # 设置为无限进度条
         
-        layout.addWidget(icon_label)
         layout.addWidget(text_label)
         layout.addWidget(progress_bar)
         layout.addStretch()
@@ -2047,10 +2008,10 @@ class MainWindow(QMainWindow):
             # 执行模式切换
             if target_mode == "multi":
                 self.bill_manager.switch_to_multi_person_mode()
-                success_msg = "已成功切换到多人模式！\\n现在可以管理多个人员的账单。"
+                success_msg = "已切换到多人模式。"
             else:
                 self.bill_manager.switch_to_single_person_mode()
-                success_msg = "已成功切换到单人模式！\\n现在只显示默认人员的账单。"
+                success_msg = "已切换到单人模式。"
             
             # 更新UI界面
             self._update_all_ui_for_mode_switch()
@@ -2060,7 +2021,7 @@ class MainWindow(QMainWindow):
             
         except Exception as e:
             loading_dialog.close()
-            QMessageBox.critical(self, "切换失败", f"模式切换时发生错误：{str(e)}")
+            QMessageBox.critical(self, "切换失败", str(e))
     
     def _update_all_ui_for_mode_switch(self):
         """更新所有与模式相关的UI元素"""
@@ -2242,26 +2203,26 @@ class MainWindow(QMainWindow):
     def set_master_person(self):
         """设置主账单人员"""
         if not self.bill_manager.is_multi_person_mode_enabled():
-            QMessageBox.warning(self, "提示", "请先切换到多人模式!")
+            QMessageBox.warning(self, "提示", "多人模式未开启。")
             return
         
         person_name = self.master_person_combo.currentText()
         if not person_name:
-            QMessageBox.warning(self, "提示", "请选择要设置的主账单人员!")
+            QMessageBox.warning(self, "提示", "请选择人员。")
             return
         
         success, message = self.bill_manager.set_master_person(person_name)
         if success:
             QMessageBox.information(self, "成功", message)
             self.update_transfer_tab_data()
-            self.status_bar.showMessage(f"✅ {message}")
+            self.status_bar.showMessage(message)
         else:
             QMessageBox.warning(self, "错误", message)
     
     def manual_transfer(self):
         """手动转账"""
         if not self.bill_manager.is_multi_person_mode_enabled():
-            QMessageBox.warning(self, "提示", "请先切换到多人模式!")
+            QMessageBox.warning(self, "提示", "多人模式未开启。")
             return
         
         from_person = self.from_person_combo.currentText()
@@ -2276,15 +2237,15 @@ class MainWindow(QMainWindow):
             amount = 0
         
         if not from_person or not to_person:
-            QMessageBox.warning(self, "提示", "请选择转账方和接收方!")
+            QMessageBox.warning(self, "提示", "请选择人员。")
             return
         
         if from_person == to_person:
-            QMessageBox.warning(self, "提示", "转账方和接收方不能是同一人!")
+            QMessageBox.warning(self, "提示", "人员重复。")
             return
         
         if amount <= 0:
-            QMessageBox.warning(self, "提示", "转账金额必须大于0!")
+            QMessageBox.warning(self, "提示", "金额无效。")
             return
         
         if not description:
@@ -2297,24 +2258,24 @@ class MainWindow(QMainWindow):
             self.transfer_description_input.clear()
             self.update_transfer_tab_data()
             self.load_data()  # 刷新总览数据
-            self.status_bar.showMessage(f"✅ {message}")
+            self.status_bar.showMessage(message)
         else:
             QMessageBox.warning(self, "错误", message)
     
     def quick_balance(self):
         """快速平账"""
         if not self.bill_manager.is_multi_person_mode_enabled():
-            QMessageBox.warning(self, "提示", "请先切换到多人模式!")
+            QMessageBox.warning(self, "提示", "多人模式未开启。")
             return
         
         target_person = self.to_person_combo.currentText()
         if not target_person:
-            QMessageBox.warning(self, "提示", "请选择要平账的人员!")
+            QMessageBox.warning(self, "提示", "请选择人员。")
             return
         
         master_person = self.bill_manager.get_master_person()
         if not master_person:
-            QMessageBox.warning(self, "提示", "请先设置主账单人员!")
+            QMessageBox.warning(self, "提示", "主账单未设置。")
             return
         
         # 计算目标人员的实际支出
@@ -2325,15 +2286,14 @@ class MainWindow(QMainWindow):
                     actual_expense += sum(bill["amount"] for bill in bills)
         
         if actual_expense <= 0:
-            QMessageBox.information(self, "提示", f"{target_person} 没有需要平账的支出")
+            QMessageBox.information(self, "提示", "无需平账。")
             return
         
         reply = QMessageBox.question(
             self, "确认平账", 
-            f"确定要为 {target_person} 平账吗？\n\n"
+            f"为 {target_person} 平账？\n"
             f"实际支出: ¥{actual_expense:.2f}\n"
-            f"平账方式: {master_person} → {target_person}\n\n"
-            f"平账后 {target_person} 的账单余额将变为0",
+            f"{master_person} → {target_person}",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No)
         
@@ -2343,7 +2303,7 @@ class MainWindow(QMainWindow):
                 QMessageBox.information(self, "平账成功", message)
                 self.update_transfer_tab_data()
                 self.load_data()  # 刷新总览数据
-                self.status_bar.showMessage(f"✅ {message}")
+                self.status_bar.showMessage(message)
             else:
                 QMessageBox.warning(self, "平账失败", message)
     
@@ -2356,9 +2316,5 @@ class MainWindow(QMainWindow):
             # 路径配置已更改，提示用户重启程序
             QMessageBox.information(
                 self, "设置成功", 
-                "✅ 数据路径设置已保存！\n\n"
-                "⚠️ 路径更改将在下次启动程序时生效。\n"
-                "如需立即生效，请重启账单管理系统。\n\n"
-                f"📊 新数据路径: {path_dialog.get_data_path()}\n"
-                f"🔐 新备份路径: {path_dialog.get_backup_path()}"
+                "路径已保存。重启后生效。"
             )

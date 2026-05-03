@@ -53,14 +53,14 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force release | Out-Null
           $appSource = (Resolve-Path "dist/QingZhang").Path
-          $outputFile = Join-Path (Resolve-Path "release").Path "QingZhang-v5.5-Setup.exe"
+          $outputFile = Join-Path (Resolve-Path "release").Path "QingZhang-v5.6-Setup.exe"
           & "C:\Program Files (x86)\NSIS\makensis.exe" "/DAPP_SOURCE_DIR=$appSource" "/DOUTPUT_FILE=$outputFile" packaging/windows/qingzhang.nsi
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
-          name: QingZhang-Windows-Installer-v5.5
-          path: release/QingZhang-v5.5-Setup.exe
+          name: QingZhang-Windows-Installer-v5.6
+          path: release/QingZhang-v5.6-Setup.exe
 
   macos-dmg:
     name: macOS DMG
@@ -102,18 +102,18 @@ jobs:
 
       - name: Build DMG
         run: |
-          rm -rf build/dmg release/QingZhang-macOS-v5.5.dmg
+          rm -rf build/dmg release/QingZhang-macOS-v5.6.dmg
           mkdir -p release build/dmg
           cp -R "dist/清账.app" build/dmg/
           ln -s /Applications build/dmg/Applications
           for attempt in 1 2 3; do
-            if hdiutil create -volname "清账 v5.5" -srcfolder build/dmg -ov -format UDZO "release/QingZhang-macOS-v5.5.dmg"; then
+            if hdiutil create -volname "清账 v5.6" -srcfolder build/dmg -ov -format UDZO "release/QingZhang-macOS-v5.6.dmg"; then
               break
             fi
             if [ "$attempt" -eq 3 ]; then
               exit 1
             fi
-            hdiutil detach "/Volumes/清账 v5.5" -force || true
+            hdiutil detach "/Volumes/清账 v5.6" -force || true
             pkill -f diskimages-helper || true
             sleep 8
           done
@@ -121,5 +121,5 @@ jobs:
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v4
         with:
-          name: QingZhang-macOS-DMG-v5.5
-          path: release/QingZhang-macOS-v5.5.dmg
+          name: QingZhang-macOS-DMG-v5.6
+          path: release/QingZhang-macOS-v5.6.dmg

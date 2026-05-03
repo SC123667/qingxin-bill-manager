@@ -82,10 +82,10 @@ def get_main_style():
         color: {COLORS["sidebar_text"]};
         border: 1px solid transparent;
         border-radius: 8px;
-        padding: 11px 12px;
+        padding: 10px 12px;
         text-align: left;
-        min-height: 54px;
-        font-size: 13px;
+        min-height: 40px;
+        font-size: 14px;
         font-weight: 700;
     }}
 
